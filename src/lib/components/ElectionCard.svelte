@@ -5,7 +5,13 @@
     AlertTriangle, 
     Sparkles,
     TrendingUp,
-    Target
+    Target,
+    XCircle,
+    Users,
+    ChevronDown,
+    ChevronUp,
+    UserCheck,
+    UserPlus
   } from 'lucide-svelte';
 
   export let item: RegionResult | MunicipalityResult;
@@ -13,6 +19,8 @@
   export let selectedParties: string[] = [];
   export let onToggleParty: (partyCode: string) => void = () => {};
   export let onClearCoalition: () => void = () => {};
+
+  let showCandidatesList = false;
 
   $: thresholdPct = item.thresholdPct || (type === 'region' ? 3.0 : 2.0);
   $: councilTitle = type === 'region' ? 'Regionfullmäktige' : 'Kommunfullmäktige';
@@ -59,7 +67,13 @@
 </script>
 
 <div 
-  class="bg-white rounded-2xl border p-4 shadow-sm transition hover:shadow-md flex flex-col justify-between {item.hasMandate ? 'border-emerald-200/90 ring-1 ring-emerald-500/10' : 'border-slate-200'}"
+  class="rounded-2xl border p-4 shadow-sm transition-all duration-200 flex flex-col justify-between {
+    item.hasMandate 
+      ? 'bg-white border-emerald-200/90 ring-1 ring-emerald-500/10' 
+      : item.hasRegisteredMpList === false 
+        ? 'bg-slate-100/40 opacity-60 border-slate-200/80 grayscale-[25%] hover:opacity-100 hover:grayscale-0 hover:bg-white' 
+        : 'bg-white border-slate-200'
+  }"
 >
   <div>
     <!-- Title & Status Badge Header -->
@@ -83,6 +97,11 @@
           <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60 shrink-0">
             <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
             Över spärren
+          </span>
+        {:else if item.hasRegisteredMpList === false}
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+            <XCircle class="w-3.5 h-3.5 text-slate-400" />
+            Ej anmäld lista
           </span>
         {:else}
           <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
@@ -207,6 +226,113 @@
         ></div>
       </div>
     </div>
+
+    <!-- Expandable Candidate List (Ordinarie & Ersättare) -->
+    {#if item.candidates && item.candidates.length > 0 && item.hasRegisteredMpList !== false}
+      {@const regularCount = item.mpMandates}
+      {@const substituteCount = regularCount > 0 ? Math.max(1, Math.ceil(regularCount / 2)) : 0}
+      {@const regularList = item.candidates.slice(0, regularCount)}
+      {@const substituteList = regularCount > 0 ? item.candidates.slice(regularCount, regularCount + substituteCount) : []}
+
+      <div class="mt-3 pt-2.5 border-t border-slate-100">
+        <button 
+          type="button"
+          on:click={() => showCandidatesList = !showCandidatesList}
+          class="w-full text-left flex items-center justify-between text-xs font-bold text-slate-700 hover:text-emerald-800 py-1.5 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition border border-slate-200/80"
+        >
+          <span class="flex items-center gap-1.5">
+            <Users class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            {#if regularCount > 0}
+              <span>Valda ledamöter ({regularCount} ordinarie + {substituteCount} ersättare)</span>
+            {:else}
+              <span>Kandidatlista på valsedeln ({item.candidates.length} kandidater)</span>
+            {/if}
+          </span>
+          <span class="text-slate-400 shrink-0">
+            {#if showCandidatesList}
+              <ChevronUp class="w-4 h-4" />
+            {:else}
+              <ChevronDown class="w-4 h-4" />
+            {/if}
+          </span>
+        </button>
+
+        {#if showCandidatesList}
+          <div class="mt-2 space-y-2.5 p-2.5 bg-slate-50/90 rounded-xl text-xs border border-slate-200/80">
+            <!-- Ordinarie ledamöter -->
+            <div>
+              <div class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <UserCheck class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Ordinarie ledamöter ({regularList.length})</span>
+              </div>
+              {#if regularList.length === 0}
+                <p class="text-[11px] text-slate-500 italic px-1">Inga ordinarie mandat säkrade ännu.</p>
+              {:else}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {#each regularList as c (c.order)}
+                    <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+                      <span class="font-bold text-slate-900 truncate">
+                        <span class="text-emerald-700 font-mono text-[11px] mr-1 font-black">#{c.order}</span>
+                        {c.name}
+                      </span>
+                      {#if c.age}
+                        <span class="text-[10px] text-slate-500 font-medium shrink-0 ml-1">{c.age} år</span>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+
+            <!-- Ersättare -->
+            {#if substituteList.length > 0}
+              <div class="pt-2 border-t border-slate-200/60">
+                <div class="text-[11px] font-extrabold text-indigo-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <UserPlus class="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span>Ersättare ({substituteList.length})</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {#each substituteList as c (c.order)}
+                    <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs opacity-90">
+                      <span class="font-semibold text-slate-800 truncate">
+                        <span class="text-indigo-600 font-mono text-[11px] mr-1 font-bold">#{c.order}</span>
+                        {c.name}
+                      </span>
+                      {#if c.age}
+                        <span class="text-[10px] text-slate-400 font-medium shrink-0 ml-1">{c.age} år</span>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            <!-- Om inga mandat: Visa topp-kandidater på valsedeln -->
+            {#if regularCount === 0 && item.candidates.length > 0}
+              <div class="pt-2 border-t border-slate-200/60">
+                <div class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Users class="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>Top-kandidater på anmäld valsedel</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {#each item.candidates.slice(0, 8) as c (c.order)}
+                    <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+                      <span class="font-medium text-slate-800 truncate">
+                        <span class="text-slate-400 font-mono text-[11px] mr-1">#{c.order}</span>
+                        {c.name}
+                      </span>
+                      {#if c.age}
+                        <span class="text-[10px] text-slate-400 font-medium shrink-0 ml-1">{c.age} år</span>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
   </div>
 
   <!-- Bottom Section: Mandatfördelning & Interactive Majority Builder -->

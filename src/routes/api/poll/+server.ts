@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import type { RegionResult, PollResponse, PollSummary } from '$lib/types';
+import type { RegionResult, PollResponse, PollSummary, Candidate } from '$lib/types';
 import AdmZip from 'adm-zip';
 
 // Standard 20 Swedish region codes and names
@@ -27,7 +27,64 @@ const REGION_CODES: { code: string; name: string }[] = [
   { code: '25', name: 'Norrbotten' }
 ];
 
-async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final'): Promise<{ result: RegionResult; year: string } | null> {
+let mpRegisteredRegionsCache: { timestamp: number; candidates: Map<string, Candidate[]> } | null = null;
+
+async function getMpRegisteredRegions(): Promise<Map<string, Candidate[]>> {
+  const now = Date.now();
+  if (mpRegisteredRegionsCache && (now - mpRegisteredRegionsCache.timestamp) < 3600 * 1000) {
+    return mpRegisteredRegionsCache.candidates;
+  }
+
+  const tempMap = new Map<string, Candidate[]>();
+  const candidatesMap = new Map<string, Candidate[]>();
+
+  const years = ['2026', '2022'];
+  for (const year of years) {
+    try {
+      const url = `https://data.val.se/filer/val${year}/parti/kandidaturer.csv`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (res.ok) {
+        const text = await res.text();
+        const lines = text.split(/\r?\n/);
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(';');
+          if ((cols[0] === 'RF' || cols[0] === 'JRF') && (cols[5] === 'Miljöpartiet de gröna' || cols[6] === 'MP' || cols[7] === '0055')) {
+            const rCode = cols[1]?.slice(0, 2);
+            if (rCode) {
+              const order = parseInt(cols[11], 10) || 999;
+              const name = cols[16];
+              const age = cols[17];
+              const info = cols[20];
+              if (name) {
+                if (!tempMap.has(rCode)) tempMap.set(rCode, []);
+                tempMap.get(rCode)!.push({ order, name, age, info });
+              }
+            }
+          }
+        }
+        if (tempMap.size > 0) break;
+      }
+    } catch (e) {}
+  }
+
+  for (const [rCode, candList] of tempMap.entries()) {
+    candList.sort((a, b) => a.order - b.order);
+    const seenNames = new Set<string>();
+    const unique: Candidate[] = [];
+    for (const c of candList) {
+      if (!seenNames.has(c.name)) {
+        seenNames.add(c.name);
+        unique.push(c);
+      }
+    }
+    candidatesMap.set(rCode, unique.slice(0, 25));
+  }
+
+  mpRegisteredRegionsCache = { timestamp: now, candidates: candidatesMap };
+  return candidatesMap;
+}
+
+async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final', rfCandidatesMap: Map<string, Candidate[]>): Promise<{ result: RegionResult; year: string } | null> {
   const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
   
   // Try 2026 live zip first, fallback to 2022 live zip from val.se if 2026 is not published yet
@@ -78,8 +135,8 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final')
 
   for (const p of vo.mandatfordelning?.partiLista || []) {
     const mandates = p.antalMandat || 0;
-    const code = p.partiforkortning || p.partikod || 'ÖVR';
-    const name = p.partinamn || code;
+    const pCode = p.partiforkortning || p.partikod || 'ÖVR';
+    const pName = p.partinamn || pCode;
     const mandatesChange = p.forandringAntalMandat ?? p.forandringMandat ?? 0;
 
     if (p.partiforkortning === 'MP' || p.partikod === '0055') {
@@ -89,8 +146,8 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final')
 
     if (mandates > 0) {
       partyMandates.push({
-        code,
-        name,
+        code: pCode,
+        name: pName,
         mandates,
         mandatesChange
       });
@@ -101,21 +158,22 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final')
   partyMandates.sort((a, b) => b.mandates - a.mandates);
 
   const allPartyVotes: { code: string; votes: number }[] = [];
-  for (const p of vo.rostfordelning?.rosterPaverkaMandat?.partiRoster || []) {
-    if (p.partiforkortning === 'MP' || p.partikod === '0055') {
-      mpVotesPct = p.andelRoster || 0;
-      mpVotesPctChange = p.forandringAndelRoster ?? p.forandringAndel ?? 0;
-      mpVotesCount = p.antalRoster || 0;
-      mpVotesCountChange = p.forandringRoster ?? p.forandringAntalRoster ?? 0;
-    }
-    const pCode = p.partiforkortning || p.partikod || 'ÖVR';
-    const pVotes = p.antalRoster || 0;
-    if (pVotes > 0) {
-      allPartyVotes.push({ code: pCode, votes: pVotes });
+  if (vo.rostfordelning?.rosterPaverkaMandat?.partiRoster) {
+    for (const pr of vo.rostfordelning.rosterPaverkaMandat.partiRoster) {
+      const pCode = pr.partiforkortning || pr.partikod || 'ÖVR';
+      const votes = pr.antalRoster || 0;
+      allPartyVotes.push({ code: pCode, votes });
+
+      if (pr.partiforkortning === 'MP' || pr.partikod === '0055') {
+        mpVotesPct = pr.andelRoster !== undefined ? Number(pr.andelRoster) : 0;
+        mpVotesPctChange = pr.forandringAndelRoster !== undefined ? Number(pr.forandringAndelRoster) : 0;
+        mpVotesCount = pr.antalRoster || 0;
+        mpVotesCountChange = pr.forandringAntalRoster ?? 0;
+      }
     }
   }
 
-  let totalValidVotes = vo.rostfordelning?.antalGiltigaRoster || 0;
+  let totalValidVotes = vo.totaltAntalRoster || 0;
   if (!totalValidVotes && vo.rostfordelning?.rosterPaverkaMandat?.partiRoster) {
     totalValidVotes = vo.rostfordelning.rosterPaverkaMandat.partiRoster.reduce(
       (sum: number, p: any) => sum + (p.antalRoster || 0),
@@ -189,12 +247,13 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final')
 
   const districtsCounted = vo.antalValdistriktRaknade || 0;
   const districtsTotal = vo.antalValdistriktSomSkaRaknas || 0;
+  const candidates = rfCandidatesMap.get(code) || [];
 
   return {
     year: usedYear,
     result: {
       code,
-      name: vo.namn || `Region ${code}`,
+      name: vo.namn || REGION_CODES.find((r) => r.code === code)?.name || code,
       mpMandates,
       mpMandatesChange,
       mpVotesPct,
@@ -212,7 +271,9 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final')
       isNewRegionWithMandate,
       partyMandates,
       votesToNextMandate,
-      votesToLoseMandate
+      votesToLoseMandate,
+      hasRegisteredMpList: true,
+      candidates
     }
   };
 }
@@ -245,15 +306,15 @@ function buildSummary(regions: RegionResult[]): PollSummary {
 
 // In-memory cache (60 seconds TTL) to protect Valmyndigheten & optimize high-concurrency traffic
 const CACHE_TTL_MS = 60 * 1000;
-const memoryCache: Record<string, { timestamp: number; data: PollResponse }> = {};
+const memoryCache_v4: Record<string, { timestamp: number; data: PollResponse }> = {};
 
 export const GET: RequestHandler = async ({ url }) => {
   const phase = (url.searchParams.get('phase') || 'preliminary') as 'preliminary' | 'final';
   const now = Date.now();
 
   // Return cached result if fresh (< 60s)
-  if (memoryCache[phase] && (now - memoryCache[phase].timestamp) < CACHE_TTL_MS) {
-    return json(memoryCache[phase].data, {
+  if (memoryCache_v4[phase] && (now - memoryCache_v4[phase].timestamp) < CACHE_TTL_MS) {
+    return json(memoryCache_v4[phase].data, {
       headers: {
         'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30'
       }
@@ -263,7 +324,8 @@ export const GET: RequestHandler = async ({ url }) => {
   const timestamp = new Date(now).toISOString();
 
   try {
-    const regionPromises = REGION_CODES.map((meta) => fetchLiveRegionData(meta.code, phase));
+    const rfCandidatesMap = await getMpRegisteredRegions();
+    const regionPromises = REGION_CODES.map((meta) => fetchLiveRegionData(meta.code, phase, rfCandidatesMap));
     const liveResults = await Promise.all(regionPromises);
     const validFetched = liveResults.filter((r): r is { result: RegionResult; year: string } => r !== null);
     
@@ -286,7 +348,7 @@ export const GET: RequestHandler = async ({ url }) => {
       regions: validRegions
     };
 
-    memoryCache[phase] = { timestamp: now, data: response };
+    memoryCache_v4[phase] = { timestamp: now, data: response };
 
     return json(response, {
       headers: {
@@ -297,8 +359,8 @@ export const GET: RequestHandler = async ({ url }) => {
     console.warn(`Live poll (${phase}) from val.se failed:`, err?.message || err);
 
     // If fetch fails, serve stale cache if available
-    if (memoryCache[phase]) {
-      return json(memoryCache[phase].data, {
+    if (memoryCache_v4[phase]) {
+      return json(memoryCache_v4[phase].data, {
         headers: {
           'Cache-Control': 'public, max-age=10, s-maxage=10'
         }

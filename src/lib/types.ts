@@ -5,6 +5,13 @@ export interface PartyMandate {
   mandatesChange?: number;
 }
 
+export interface Candidate {
+  order: number;
+  name: string;
+  age?: string;
+  info?: string;
+}
+
 export interface RegionResult {
   code: string;
   name: string;
@@ -27,6 +34,8 @@ export interface RegionResult {
   partyMandates: PartyMandate[];
   votesToNextMandate: number;
   votesToLoseMandate: number;
+  hasRegisteredMpList?: boolean;
+  candidates?: Candidate[];
 }
 
 export type MunicipalityResult = RegionResult;

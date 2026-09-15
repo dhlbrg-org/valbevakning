@@ -41,7 +41,7 @@
 
   // Search, Filters & Sorting
   let searchQuery = '';
-  let activeTab: 'all' | 'secured' | 'below_threshold' | 'new_regions' | 'without_mandate_prev' = 'all';
+  let activeTab: 'all' | 'secured' | 'below_threshold_registered' | 'below_threshold_all' | 'unregistered_list' | 'new_regions' | 'without_mandate_prev' = 'all';
   let selectedRegionFilter = 'all';
 
   type SortKey = 'name' | 'mandates' | 'votesPct' | 'pctChange';
@@ -136,6 +136,7 @@
   }
 
   onMount(() => {
+    loadRegionFilterFromStorage();
     loadCoalitionsFromStorage();
     startPolling();
   });
@@ -201,7 +202,9 @@
 
       const thresh = r.thresholdPct || 2.0;
       if (activeTab === 'secured') return r.hasMandate;
-      if (activeTab === 'below_threshold') return r.mpVotesPct < thresh;
+      if (activeTab === 'below_threshold_registered') return r.mpVotesPct < thresh && r.hasRegisteredMpList !== false;
+      if (activeTab === 'below_threshold_all') return r.mpVotesPct < thresh;
+      if (activeTab === 'unregistered_list') return r.hasRegisteredMpList === false;
       if (activeTab === 'new_regions') return r.isNewRegionWithMandate;
       if (activeTab === 'without_mandate_prev') return (r.mpMandates - r.mpMandatesChange) <= 0;
       return true;
@@ -233,7 +236,9 @@
     : (pollData?.municipalities || []).filter((m) => m.code.startsWith(selectedRegionFilter));
 
   $: securedCount = regionFilteredList.filter((r) => r.hasMandate).length;
-  $: belowThresholdCount = regionFilteredList.filter((r) => r.mpVotesPct < (r.thresholdPct || 2.0)).length;
+  $: belowThresholdRegisteredCount = regionFilteredList.filter((r) => r.mpVotesPct < (r.thresholdPct || 2.0) && r.hasRegisteredMpList !== false).length;
+  $: belowThresholdAllCount = regionFilteredList.filter((r) => r.mpVotesPct < (r.thresholdPct || 2.0)).length;
+  $: unregisteredCount = regionFilteredList.filter((r) => r.hasRegisteredMpList === false).length;
   $: newMunicipalitiesCount = regionFilteredList.filter((r) => r.isNewRegionWithMandate).length;
   $: withoutMandatePrevCount = regionFilteredList.filter((r) => (r.mpMandates - r.mpMandatesChange) <= 0).length;
 
@@ -261,6 +266,32 @@
     if (num > 0) return `+${formatted}%`;
     if (num < 0) return `-${formatted}%`;
     return '±0,0%';
+  }
+
+  // Selected Region Filter LocalStorage Persistence
+  const REGION_FILTER_STORAGE_KEY = 'mp_val_kommun_selected_region_v1';
+
+  function loadRegionFilterFromStorage() {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem(REGION_FILTER_STORAGE_KEY);
+      if (saved) {
+        selectedRegionFilter = saved;
+      }
+    } catch (e) {
+      console.warn('Failed to load selected region filter from localStorage:', e);
+    }
+  }
+
+  function handleRegionFilterChange(rCode: string) {
+    selectedRegionFilter = rCode;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(REGION_FILTER_STORAGE_KEY, rCode);
+      } catch (e) {
+        console.warn('Failed to save selected region filter to localStorage:', e);
+      }
+    }
   }
 
   // Majority / Coalition Builder State with LocalStorage Persistence
@@ -424,7 +455,7 @@
         summary={activeSummary} 
         type="kommun" 
         regionFilter={selectedRegionFilter} 
-        onRegionFilterChange={(rCode) => selectedRegionFilter = rCode} 
+        onRegionFilterChange={handleRegionFilterChange} 
       />
     {/if}
 
@@ -475,24 +506,38 @@
           Över spärren ({securedCount})
         </button>
         <button 
-          on:click={() => activeTab = 'below_threshold'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'below_threshold' ? 'bg-amber-500 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
+          on:click={() => activeTab = 'below_threshold_registered'}
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'below_threshold_registered' ? 'bg-amber-600 text-white shadow font-bold' : 'text-slate-600 hover:bg-slate-100'}"
         >
-          <Target class="w-3.5 h-3.5" />
-          Under spärren ({belowThresholdCount})
+          <Target class="w-3.5 h-3.5 text-amber-300" />
+          Anmäld lista under spärren ({belowThresholdRegisteredCount})
+        </button>
+        <button 
+          on:click={() => activeTab = 'unregistered_list'}
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'unregistered_list' ? 'bg-slate-700 text-white shadow font-bold' : 'text-slate-600 hover:bg-slate-100'}"
+        >
+          <XCircle class="w-3.5 h-3.5 text-slate-300" />
+          Ej anmäld lista ({unregisteredCount})
         </button>
         <button 
           on:click={() => activeTab = 'new_regions'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'new_regions' ? 'bg-emerald-700 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'new_regions' ? 'bg-emerald-700 text-white shadow font-bold' : 'text-slate-600 hover:bg-slate-100'}"
         >
           <Sparkles class="w-3.5 h-3.5 text-emerald-300" />
           Nya kommuner ({newMunicipalitiesCount})
         </button>
         <button 
           on:click={() => activeTab = 'without_mandate_prev'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'without_mandate_prev' ? 'bg-indigo-700 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'without_mandate_prev' ? 'bg-indigo-700 text-white shadow font-bold' : 'text-slate-600 hover:bg-slate-100'}"
         >
           Utan mandat förut ({withoutMandatePrevCount})
+        </button>
+        <button 
+          on:click={() => activeTab = 'below_threshold_all'}
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'below_threshold_all' ? 'bg-amber-800 text-white shadow font-bold' : 'text-slate-600 hover:bg-slate-100'}"
+        >
+          <AlertTriangle class="w-3.5 h-3.5 text-amber-300" />
+          Alla under spärren ({belowThresholdAllCount})
         </button>
       </div>
 

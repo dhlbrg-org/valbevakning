@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import type { MunicipalityResult, MunicipalityPollResponse, PollSummary } from '$lib/types';
+import type { MunicipalityResult, MunicipalityPollResponse, PollSummary, Candidate } from '$lib/types';
 import AdmZip from 'adm-zip';
 
 const MUNICIPALITY_CODES: { code: string; name: string }[] = [
@@ -1166,7 +1166,76 @@ const MUNICIPALITY_CODES: { code: string; name: string }[] = [
   }
 ];
 
-async function fetchLiveMunicipalityData(code: string, nameFallback: string, phase: 'preliminary' | 'final'): Promise<{ result: MunicipalityResult; year: string } | null> {
+let mpRegisteredMunicipalitiesCache: { timestamp: number; codes: Set<string>; candidates: Map<string, Candidate[]> } | null = null;
+
+async function getMpRegisteredMunicipalities(): Promise<{ codes: Set<string>; candidates: Map<string, Candidate[]> }> {
+  const now = Date.now();
+  if (mpRegisteredMunicipalitiesCache && (now - mpRegisteredMunicipalitiesCache.timestamp) < 3600 * 1000) {
+    return mpRegisteredMunicipalitiesCache;
+  }
+
+  const set = new Set<string>();
+  const candidatesMap = new Map<string, Candidate[]>();
+  const tempMap = new Map<string, Candidate[]>();
+
+  const years = ['2026', '2022'];
+  for (const year of years) {
+    try {
+      const url = `https://data.val.se/filer/val${year}/parti/kandidaturer.csv`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (res.ok) {
+        const text = await res.text();
+        const lines = text.split(/\r?\n/);
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(';');
+          if (cols[0] === 'KF' && (cols[5] === 'Miljöpartiet de gröna' || cols[6] === 'MP' || cols[7] === '0055')) {
+            const mCode = cols[1];
+            if (mCode) {
+              set.add(mCode);
+              const order = parseInt(cols[11], 10) || 999;
+              const name = cols[16];
+              const age = cols[17];
+              const info = cols[20];
+              if (name) {
+                if (!tempMap.has(mCode)) {
+                  tempMap.set(mCode, []);
+                }
+                tempMap.get(mCode)!.push({ order, name, age, info });
+              }
+            }
+          }
+        }
+        if (set.size > 0) break;
+      }
+    } catch (e) {
+      // Ignore fallback
+    }
+  }
+
+  for (const [mCode, candList] of tempMap.entries()) {
+    candList.sort((a, b) => a.order - b.order);
+    const seenNames = new Set<string>();
+    const unique: Candidate[] = [];
+    for (const c of candList) {
+      if (!seenNames.has(c.name)) {
+        seenNames.add(c.name);
+        unique.push(c);
+      }
+    }
+    candidatesMap.set(mCode, unique.slice(0, 25));
+  }
+
+  mpRegisteredMunicipalitiesCache = { timestamp: now, codes: set, candidates: candidatesMap };
+  return { codes: set, candidates: candidatesMap };
+}
+
+async function fetchLiveMunicipalityData(
+  code: string, 
+  nameFallback: string, 
+  phase: 'preliminary' | 'final',
+  registeredMpSet: Set<string>,
+  mpCandidatesMap: Map<string, Candidate[]>
+): Promise<{ result: MunicipalityResult; year: string } | null> {
   const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
   const yearsToTry = ['2026', '2022'];
   let response: Response | null = null;
@@ -1327,6 +1396,8 @@ async function fetchLiveMunicipalityData(code: string, nameFallback: string, pha
 
   const districtsCounted = vo.antalValdistriktRaknade || 0;
   const districtsTotal = vo.antalValdistriktSomSkaRaknas || 0;
+  const hasRegisteredMpList = registeredMpSet.size > 0 ? registeredMpSet.has(code) : true;
+  const candidates = mpCandidatesMap.get(code) || [];
 
   return {
     year: usedYear,
@@ -1351,7 +1422,8 @@ async function fetchLiveMunicipalityData(code: string, nameFallback: string, pha
       isNewRegionWithMandate,
       partyMandates,
       votesToNextMandate,
-      votesToLoseMandate
+      votesToLoseMandate,
+      hasRegisteredMpList
     }
   };
 }
@@ -1375,6 +1447,7 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 
   try {
+    const registeredMpData = await getMpRegisteredMunicipalities();
     // Process in parallel batches of 25 to avoid overwhelming network
     const BATCH_SIZE = 25;
     const results: { result: MunicipalityResult; year: string }[] = [];
@@ -1382,7 +1455,7 @@ export const GET: RequestHandler = async ({ url }) => {
     for (let i = 0; i < MUNICIPALITY_CODES.length; i += BATCH_SIZE) {
       const batch = MUNICIPALITY_CODES.slice(i, i + BATCH_SIZE);
       const batchResults = await Promise.all(
-        batch.map(m => fetchLiveMunicipalityData(m.code, m.name, phase))
+        batch.map(m => fetchLiveMunicipalityData(m.code, m.name, phase, registeredMpData.codes, registeredMpData.candidates))
       );
       for (const res of batchResults) {
         if (res) results.push(res);
