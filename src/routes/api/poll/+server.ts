@@ -243,9 +243,24 @@ function buildSummary(regions: RegionResult[]): PollSummary {
   };
 }
 
+// In-memory cache (60 seconds TTL) to protect Valmyndigheten & optimize high-concurrency traffic
+const CACHE_TTL_MS = 60 * 1000;
+const memoryCache: Record<string, { timestamp: number; data: PollResponse }> = {};
+
 export const GET: RequestHandler = async ({ url }) => {
   const phase = (url.searchParams.get('phase') || 'preliminary') as 'preliminary' | 'final';
-  const timestamp = new Date().toISOString();
+  const now = Date.now();
+
+  // Return cached result if fresh (< 60s)
+  if (memoryCache[phase] && (now - memoryCache[phase].timestamp) < CACHE_TTL_MS) {
+    return json(memoryCache[phase].data, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30'
+      }
+    });
+  }
+
+  const timestamp = new Date(now).toISOString();
 
   try {
     const regionPromises = REGION_CODES.map((meta) => fetchLiveRegionData(meta.code, phase));
@@ -271,9 +286,24 @@ export const GET: RequestHandler = async ({ url }) => {
       regions: validRegions
     };
 
-    return json(response);
+    memoryCache[phase] = { timestamp: now, data: response };
+
+    return json(response, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30'
+      }
+    });
   } catch (err: any) {
     console.warn(`Live poll (${phase}) from val.se failed:`, err?.message || err);
+
+    // If fetch fails, serve stale cache if available
+    if (memoryCache[phase]) {
+      return json(memoryCache[phase].data, {
+        headers: {
+          'Cache-Control': 'public, max-age=10, s-maxage=10'
+        }
+      });
+    }
 
     const phaseLabel = phase === 'final' ? 'Slutgiltig rösträkning' : 'Preliminär rösträkning';
     const response: PollResponse = {

@@ -1356,9 +1356,23 @@ async function fetchLiveMunicipalityData(code: string, nameFallback: string, pha
   };
 }
 
+// In-memory cache (60 seconds TTL) to protect Valmyndigheten & optimize high-concurrency traffic
+const CACHE_TTL_MS = 60 * 1000;
+const memoryCache: Record<string, { timestamp: number; data: MunicipalityPollResponse }> = {};
+
 export const GET: RequestHandler = async ({ url }) => {
   const phaseParam = url.searchParams.get('phase');
   const phase: 'preliminary' | 'final' = phaseParam === 'final' ? 'final' : 'preliminary';
+  const now = Date.now();
+
+  // Return cached result if fresh (< 60s)
+  if (memoryCache[phase] && (now - memoryCache[phase].timestamp) < CACHE_TTL_MS) {
+    return json(memoryCache[phase].data, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30'
+      }
+    });
+  }
 
   try {
     // Process in parallel batches of 25 to avoid overwhelming network
@@ -1376,6 +1390,11 @@ export const GET: RequestHandler = async ({ url }) => {
     }
 
     if (results.length === 0) {
+      if (memoryCache[phase]) {
+        return json(memoryCache[phase].data, {
+          headers: { 'Cache-Control': 'public, max-age=10, s-maxage=10' }
+        });
+      }
       return json(
         {
           timestamp: new Date().toISOString(),
@@ -1444,12 +1463,20 @@ export const GET: RequestHandler = async ({ url }) => {
       municipalities
     };
 
+    memoryCache[phase] = { timestamp: now, data: response };
+
     return json(response, {
       headers: {
-        'Cache-Control': 'public, max-age=15, s-maxage=30'
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30'
       }
     });
   } catch (err: any) {
+    if (memoryCache[phase]) {
+      return json(memoryCache[phase].data, {
+        headers: { 'Cache-Control': 'public, max-age=10, s-maxage=10' }
+      });
+    }
+
     return json(
       {
         timestamp: new Date().toISOString(),
