@@ -1229,17 +1229,42 @@ async function getMpRegisteredMunicipalities(): Promise<{ codes: Set<string>; ca
   return { codes: set, candidates: candidatesMap };
 }
 
+let activeYearCache: { year: string; timestamp: number } | null = null;
+
+async function detectActiveYear(phase: 'preliminary' | 'final'): Promise<string> {
+  const now = Date.now();
+  if (activeYearCache && (now - activeYearCache.timestamp) < 600 * 1000) {
+    return activeYearCache.year;
+  }
+  const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
+  try {
+    const res = await fetch(`https://resultat.val.se/resultatfiler/val2026/p/kf/Val_2026_${filePrefix}_0180_KF.zip`, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(3000)
+    });
+    if (res.ok) {
+      activeYearCache = { year: '2026', timestamp: now };
+      return '2026';
+    }
+  } catch (e) {
+    // 2026 not ready
+  }
+  activeYearCache = { year: '2022', timestamp: now };
+  return '2022';
+}
+
 async function fetchLiveMunicipalityData(
   code: string, 
   nameFallback: string, 
   phase: 'preliminary' | 'final',
+  targetYear: string,
   registeredMpSet: Set<string>,
   mpCandidatesMap: Map<string, Candidate[]>
 ): Promise<{ result: MunicipalityResult; year: string } | null> {
   const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
-  const yearsToTry = ['2026', '2022'];
+  const yearsToTry = targetYear === '2026' ? ['2026', '2022'] : ['2022'];
   let response: Response | null = null;
-  let usedYear = '2026';
+  let usedYear = targetYear;
 
   for (const year of yearsToTry) {
     const url = `https://resultat.val.se/resultatfiler/val${year}/p/kf/Val_${year}_${filePrefix}_${code}_KF.zip`;
@@ -1428,8 +1453,8 @@ async function fetchLiveMunicipalityData(
   };
 }
 
-// In-memory cache (60 seconds TTL) to protect Valmyndigheten & optimize high-concurrency traffic
-const CACHE_TTL_MS = 60 * 1000;
+// In-memory cache (5 minutes TTL) to protect Valmyndigheten & optimize high-concurrency traffic
+const CACHE_TTL_MS = 5 * 60 * 1000;
 const memoryCache: Record<string, { timestamp: number; data: MunicipalityPollResponse }> = {};
 
 export const GET: RequestHandler = async ({ url }) => {
@@ -1437,28 +1462,34 @@ export const GET: RequestHandler = async ({ url }) => {
   const phase: 'preliminary' | 'final' = phaseParam === 'final' ? 'final' : 'preliminary';
   const now = Date.now();
 
-  // Return cached result if fresh (< 60s)
+  // Return cached result if fresh (< 5m)
   if (memoryCache[phase] && (now - memoryCache[phase].timestamp) < CACHE_TTL_MS) {
     return json(memoryCache[phase].data, {
       headers: {
-        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=30'
+        'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=60'
       }
     });
   }
 
   try {
     const registeredMpData = await getMpRegisteredMunicipalities();
-    // Process in parallel batches of 25 to avoid overwhelming network
-    const BATCH_SIZE = 25;
+    const activeYear = await detectActiveYear(phase);
+
+    // Process in parallel batches of 15 to avoid overwhelming network
+    const BATCH_SIZE = 15;
     const results: { result: MunicipalityResult; year: string }[] = [];
 
     for (let i = 0; i < MUNICIPALITY_CODES.length; i += BATCH_SIZE) {
       const batch = MUNICIPALITY_CODES.slice(i, i + BATCH_SIZE);
       const batchResults = await Promise.all(
-        batch.map(m => fetchLiveMunicipalityData(m.code, m.name, phase, registeredMpData.codes, registeredMpData.candidates))
+        batch.map(m => fetchLiveMunicipalityData(m.code, m.name, phase, activeYear, registeredMpData.codes, registeredMpData.candidates))
       );
       for (const res of batchResults) {
         if (res) results.push(res);
+      }
+      // Small throttle between batches
+      if (i + BATCH_SIZE < MUNICIPALITY_CODES.length) {
+        await new Promise(r => setTimeout(r, 20));
       }
     }
 

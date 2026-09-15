@@ -84,13 +84,37 @@ async function getMpRegisteredRegions(): Promise<Map<string, Candidate[]>> {
   return candidatesMap;
 }
 
-async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final', rfCandidatesMap: Map<string, Candidate[]>): Promise<{ result: RegionResult; year: string } | null> {
+let activeRegionYearCache: { year: string; timestamp: number } | null = null;
+
+async function detectActiveRegionYear(phase: 'preliminary' | 'final'): Promise<string> {
+  const now = Date.now();
+  if (activeRegionYearCache && (now - activeRegionYearCache.timestamp) < 600 * 1000) {
+    return activeRegionYearCache.year;
+  }
+  const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
+  try {
+    const res = await fetch(`https://resultat.val.se/resultatfiler/val2026/p/rf/Val_2026_${filePrefix}_01_RF.zip`, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(3000)
+    });
+    if (res.ok) {
+      activeRegionYearCache = { year: '2026', timestamp: now };
+      return '2026';
+    }
+  } catch (e) {
+    // 2026 not ready
+  }
+  activeRegionYearCache = { year: '2022', timestamp: now };
+  return '2022';
+}
+
+async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final', targetYear: string, rfCandidatesMap: Map<string, Candidate[]>): Promise<{ result: RegionResult; year: string } | null> {
   const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
   
   // Try 2026 live zip first, fallback to 2022 live zip from val.se if 2026 is not published yet
-  const yearsToTry = ['2026', '2022'];
+  const yearsToTry = targetYear === '2026' ? ['2026', '2022'] : ['2022'];
   let response: Response | null = null;
-  let usedYear = '2026';
+  let usedYear = targetYear;
 
   for (const year of yearsToTry) {
     const url = `https://resultat.val.se/resultatfiler/val${year}/p/rf/Val_${year}_${filePrefix}_${code}_RF.zip`;
@@ -325,7 +349,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
   try {
     const rfCandidatesMap = await getMpRegisteredRegions();
-    const regionPromises = REGION_CODES.map((meta) => fetchLiveRegionData(meta.code, phase, rfCandidatesMap));
+    const activeYear = await detectActiveRegionYear(phase);
+    const regionPromises = REGION_CODES.map((meta) => fetchLiveRegionData(meta.code, phase, activeYear, rfCandidatesMap));
     const liveResults = await Promise.all(regionPromises);
     const validFetched = liveResults.filter((r): r is { result: RegionResult; year: string } => r !== null);
     
