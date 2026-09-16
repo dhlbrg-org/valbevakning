@@ -78,7 +78,7 @@
   $: hasRoles = candidatesList.some((c: any) => c.role !== undefined);
   $: regularList = hasRoles 
     ? candidatesList.filter((c: any) => c.role === 'Ordinarie')
-    : (item.mpMandates ? candidatesList.slice(0, item.mpMandates) : candidatesList);
+    : (item.mpMandates > 0 ? candidatesList.slice(0, item.mpMandates) : []);
   $: minSubs = type === 'region' ? 3 : 2;
   $: substituteList = hasRoles
     ? candidatesList.filter((c: any) => c.role === 'Ersättare')
