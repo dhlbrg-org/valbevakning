@@ -295,7 +295,11 @@
           <span class="flex items-center gap-1.5">
             <Users class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             {#if regularCount > 0 && type !== 'riksdag'}
-              <span>Valda ledamöter ({regularCount} ordinarie + {substituteCount} ersättare)</span>
+              {#if type === 'region'}
+                <span>Valda ledamöter ({regularCount} ordinarie, 3 ersättare/ledamot)</span>
+              {:else}
+                <span>Valda ledamöter ({regularCount} ordinarie + {substituteCount} ersättare)</span>
+              {/if}
             {:else}
               <span>Kandidatlista på valsedeln ({item.candidates.length} kandidater)</span>
             {/if}
@@ -337,7 +341,51 @@
               </div>
               {#if regularList.length === 0}
                 <p class="text-[11px] text-slate-500 italic px-1">Inga ordinarie mandat säkrade ännu.</p>
+              {:else if type === 'region'}
+                <!-- Region: Ersättare kopplas PER LEDAMOT enligt Vallagen -->
+                <div class="space-y-2">
+                  {#each regularList as member, i (member.name + (member.valkrets || '') + i)}
+                    {@const memberSubs = substituteList.filter(s => !s.valkrets || s.valkrets === member.valkrets).slice(i * 3, (i + 1) * 3)}
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
+                      <div class="flex items-center justify-between font-bold text-slate-900 text-xs">
+                        <span class="flex items-center gap-1 truncate">
+                          <span class="text-emerald-700 font-mono font-black mr-0.5">#{member.order}</span>
+                          <span class="truncate">{member.name}</span>
+                          {#if member.valkrets}
+                            <span class="text-[10px] text-slate-400 font-normal shrink-0">({member.valkrets})</span>
+                          {/if}
+                        </span>
+                        {#if member.age}
+                          <span class="text-[10px] text-slate-500 font-medium shrink-0 ml-1">{member.age} år</span>
+                        {/if}
+                      </div>
+
+                      {#if memberSubs.length > 0}
+                        <div class="pt-1.5 border-t border-slate-100 space-y-1">
+                          <div class="text-[10px] font-extrabold text-indigo-700 uppercase tracking-wider flex items-center gap-1">
+                            <UserPlus class="w-3 h-3 text-indigo-500" />
+                            <span>Ersättare för {member.name.split(' ')[0]} (3 sökes)</span>
+                          </div>
+                          <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
+                            {#each memberSubs as sub, subIdx}
+                              <div class="bg-indigo-50/70 px-2 py-1 rounded-lg text-[11px] flex items-center justify-between border border-indigo-100">
+                                <span class="font-semibold text-slate-800 truncate">
+                                  <span class="text-indigo-600 font-bold font-mono text-[10px] mr-1">{subIdx + 1}.</span>
+                                  {sub.name}
+                                </span>
+                                {#if sub.age}
+                                  <span class="text-[9px] text-slate-400 shrink-0 ml-1">{sub.age} år</span>
+                                {/if}
+                              </div>
+                            {/each}
+                          </div>
+                        </div>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
               {:else}
+                <!-- Kommun / Riksdag listvy -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {#each regularList as c, i (c.name + (c.valkrets || '') + i)}
                     <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
@@ -357,15 +405,15 @@
               {/if}
             </div>
 
-            <!-- Ersättare -->
-            {#if substituteList.length > 0 && type !== 'riksdag'}
+            <!-- Kommun Ersättare listvy -->
+            {#if substituteList.length > 0 && type === 'kommun'}
               <div class="pt-2 border-t border-slate-200/60">
                 <div class="text-[11px] font-extrabold text-indigo-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                   <span class="flex items-center gap-1">
                     <UserPlus class="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                    <span>{type === 'region' ? `Ersättare per ledamot (${Math.max(3, regularList.length)} sökes)` : `Ersättare (${substituteList.length})`}</span>
+                    <span>Ersättare ({substituteList.length})</span>
                   </span>
-                  {#if type === 'kommun' && item.substituteRule && !item.substituteRule.verified}
+                  {#if item.substituteRule && !item.substituteRule.verified}
                     <span class="text-[10px] font-normal text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
                       Kvoten ej verifierad (skattad 0.5)
                     </span>
