@@ -195,7 +195,7 @@ const VALKRETS_DISTRICT_TOTALS: Record<string, number> = {
   '11': 201, '12': 204, '13': 198, '14': 202, '15': 211,
   '16': 357, '17': 140, '18': 247, '19': 182, '20': 183,
   '21': 192, '22': 174, '23': 198, '24': 196, '25': 179,
-  '26': 105, '27': 194, '28': 175, '29': 1
+  '26': 105, '27': 194, '28': 175, '29': 174
 };
 
     const nationalDistrictsCounted = slutligData.antalValdistriktRaknade || 0;
