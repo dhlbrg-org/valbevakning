@@ -86,6 +86,55 @@
   $: regularCount = regularList.length;
   $: substituteCount = substituteList.length;
   $: totalPartyMandates = item.totalMandates || (item.partyMandates || []).reduce((s: number, p: any) => s + p.mandates, 0);
+
+  let selectedMember: any | null = null;
+  let lastItemCode = '';
+  $: if (item?.code !== lastItemCode) {
+    lastItemCode = item?.code;
+    selectedMember = null;
+  }
+
+  function getSubstitutesForMember(member: any): any[] {
+    if (!member) return [];
+    if (type === 'region') {
+      const valkretsSeats = regularList.filter(r => member.valkrets ? r.valkrets === member.valkrets : true).length;
+      const subsNeeded = Math.max(3, valkretsSeats);
+      const matching = member.valkrets 
+        ? substituteList.filter(s => s.valkrets === member.valkrets)
+        : substituteList;
+      return (matching.length > 0 ? matching : substituteList).slice(0, subsNeeded);
+    } else {
+      if (member.valkrets && substituteList.some(s => s.valkrets === member.valkrets)) {
+        return substituteList.filter(s => s.valkrets === member.valkrets);
+      }
+      return substituteList;
+    }
+  }
+
+  $: activeSubstitutes = selectedMember ? getSubstitutesForMember(selectedMember) : [];
+  $: activeSubNames = new Set(activeSubstitutes.map((s: any) => s.name));
+
+  function toggleMember(c: any) {
+    if (selectedMember?.name === c.name) {
+      selectedMember = null;
+    } else {
+      selectedMember = c;
+    }
+  }
+
+  function onSelectSubstitute(sub: any) {
+    if (selectedMember && activeSubNames.has(sub.name)) {
+      selectedMember = null;
+      return;
+    }
+    const matchingMember = regularList.find(m => {
+      const subs = getSubstitutesForMember(m);
+      return subs.some(s => s.name === sub.name);
+    });
+    if (matchingMember) {
+      selectedMember = matchingMember;
+    }
+  }
 </script>
 
 <div 
@@ -295,11 +344,7 @@
           <span class="flex items-center gap-1.5">
             <Users class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             {#if regularCount > 0 && type !== 'riksdag'}
-              {#if type === 'region'}
-                <span>Valda ledamöter ({regularCount} ordinarie, 3 ersättare/ledamot)</span>
-              {:else}
-                <span>Valda ledamöter ({regularCount} ordinarie + {substituteCount} ersättare)</span>
-              {/if}
+              <span>Valda ledamöter ({regularCount} ordinarie + {substituteCount} ersättare)</span>
             {:else}
               <span>Kandidatlista på valsedeln ({item.candidates.length} kandidater)</span>
             {/if}
@@ -335,110 +380,135 @@
 
             <!-- Ordinarie ledamöter / Kandidater -->
             <div>
-              <div class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <UserCheck class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>{type === 'riksdag' ? (item.candidateLists && item.candidateLists.length > 1 ? `Kandidater (${item.candidateLists[selectedListIndex]?.listName || 'Valsedel'})` : 'Kandidater på valsedeln') : `Ordinarie ledamöter (${regularList.length})`}</span>
+              <div class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span class="flex items-center gap-1">
+                  <UserCheck class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{type === 'riksdag' ? (item.candidateLists && item.candidateLists.length > 1 ? `Kandidater (${item.candidateLists[selectedListIndex]?.listName || 'Valsedel'})` : 'Kandidater på valsedeln') : `Ordinarie ledamöter (${regularList.length})`}</span>
+                </span>
+                {#if type !== 'riksdag' && regularList.length > 0 && substituteList.length > 0}
+                  <span class="text-[10px] font-normal text-slate-400">
+                    {selectedMember ? 'Klicka igen för att avmarkera' : 'Klicka för att se ersättare'}
+                  </span>
+                {/if}
               </div>
+
               {#if regularList.length === 0}
                 <p class="text-[11px] text-slate-500 italic px-1">Inga ordinarie mandat säkrade ännu.</p>
-              {:else if type === 'region'}
-                <!-- Region: Ersättare kopplas PER LEDAMOT enligt Vallagen (top 3 un-elected candidates on ballot list) -->
-                <div class="space-y-2">
-                  {#each regularList as member, i (member.name + (member.valkrets || '') + i)}
-                    {@const valkretsSeats = regularList.filter(r => member.valkrets ? r.valkrets === member.valkrets : true).length}
-                    {@const subsNeeded = Math.max(3, valkretsSeats)}
-                    {@const matchingSubs = member.valkrets ? substituteList.filter(s => s.valkrets === member.valkrets) : substituteList}
-                    {@const memberSubs = hasRoles 
-                      ? (matchingSubs.length > 0 ? matchingSubs.slice(0, subsNeeded) : substituteList.slice(0, subsNeeded))
-                      : candidatesList.filter(c => !regularList.some(r => r.name === c.name)).slice(0, subsNeeded)
-                    }
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
-                      <div class="flex items-center justify-between font-bold text-slate-900 text-xs">
-                        <span class="flex items-center gap-1 truncate">
-                          <span class="text-emerald-700 font-mono font-black mr-0.5">#{member.order}</span>
-                          <span class="truncate">{member.name}</span>
-                          {#if member.valkrets}
-                            <span class="text-[10px] text-slate-400 font-normal shrink-0">({member.valkrets})</span>
-                          {/if}
-                        </span>
-                        {#if member.age}
-                          <span class="text-[10px] text-slate-500 font-medium shrink-0 ml-1">{member.age} år</span>
-                        {/if}
-                      </div>
-
-                      {#if memberSubs.length > 0}
-                        <div class="pt-1.5 border-t border-slate-100 space-y-1">
-                          <div class="text-[10px] font-extrabold text-indigo-700 uppercase tracking-wider flex items-center gap-1">
-                            <UserPlus class="w-3 h-3 text-indigo-500" />
-                            <span>Ersättare för {member.name.split(' ')[0]} ({subsNeeded} sökes)</span>
-                          </div>
-                          <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
-                            {#each memberSubs as sub, subIdx}
-                              <div class="bg-indigo-50/70 px-2 py-1 rounded-lg text-[11px] flex items-center justify-between border border-indigo-100">
-                                <span class="font-semibold text-slate-800 truncate">
-                                  <span class="text-indigo-600 font-bold font-mono text-[10px] mr-1">{subIdx + 1}.</span>
-                                  {sub.name}
-                                </span>
-                                {#if sub.age}
-                                  <span class="text-[9px] text-slate-400 shrink-0 ml-1">{sub.age} år</span>
-                                {/if}
-                              </div>
-                            {/each}
-                          </div>
-                        </div>
-                      {/if}
-                    </div>
-                  {/each}
-                </div>
               {:else}
-                <!-- Kommun / Riksdag listvy -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {#each regularList as c, i (c.name + (c.valkrets || '') + i)}
-                    <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
-                      <span class="font-bold text-slate-900 truncate">
-                        <span class="text-emerald-700 font-mono text-[11px] mr-1 font-black">#{c.order}</span>
-                        {c.name}
-                        {#if c.valkrets}
-                          <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
+                    {@const isSelected = selectedMember?.name === c.name}
+                    {#if type !== 'riksdag' && substituteList.length > 0}
+                      <button
+                        type="button"
+                        on:click={() => toggleMember(c)}
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs text-left transition cursor-pointer active:scale-98 {
+                          selectedMember
+                            ? (isSelected 
+                                ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/30 text-emerald-950 font-bold shadow-xs' 
+                                : 'bg-white/70 border-slate-200 text-slate-400 opacity-60 hover:opacity-100')
+                            : 'bg-white border-slate-200 text-slate-900 hover:border-emerald-300 hover:bg-emerald-50/40'
+                        }"
+                      >
+                        <span class="font-bold truncate">
+                          <span class="text-emerald-700 font-mono text-[11px] mr-1 font-black">#{c.order}</span>
+                          <span class="{isSelected ? 'text-emerald-950 font-black' : 'text-slate-900'}">{c.name}</span>
+                          {#if c.valkrets}
+                            <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
+                          {/if}
+                        </span>
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                          {#if isSelected}
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white px-1.5 py-0.5 rounded shadow-2xs">
+                              Markerad
+                            </span>
+                          {:else if c.age}
+                            <span class="text-[10px] text-slate-500 font-medium">{c.age} år</span>
+                          {/if}
+                        </div>
+                      </button>
+                    {:else}
+                      <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+                        <span class="font-bold text-slate-900 truncate">
+                          <span class="text-emerald-700 font-mono text-[11px] mr-1 font-black">#{c.order}</span>
+                          {c.name}
+                          {#if c.valkrets}
+                            <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
+                          {/if}
+                        </span>
+                        {#if c.age}
+                          <span class="text-[10px] text-slate-500 font-medium shrink-0 ml-1">{c.age} år</span>
                         {/if}
-                      </span>
-                      {#if c.age}
-                        <span class="text-[10px] text-slate-500 font-medium shrink-0 ml-1">{c.age} år</span>
-                      {/if}
-                    </div>
+                      </div>
+                    {/if}
                   {/each}
                 </div>
               {/if}
             </div>
 
-            <!-- Kommun Ersättare listvy -->
-            {#if substituteList.length > 0 && type === 'kommun'}
+            <!-- Ersättare listvy för både region och kommun -->
+            {#if substituteList.length > 0 && type !== 'riksdag'}
               <div class="pt-2 border-t border-slate-200/60">
                 <div class="text-[11px] font-extrabold text-indigo-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                   <span class="flex items-center gap-1">
                     <UserPlus class="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                    <span>Ersättare ({substituteList.length})</span>
+                    {#if selectedMember}
+                      <span>Ersättare för {selectedMember.name.split(' ')[0]} ({activeSubstitutes.length} st)</span>
+                    {:else}
+                      <span>Ersättare ({substituteList.length})</span>
+                    {/if}
                   </span>
-                  {#if item.substituteRule && !item.substituteRule.verified}
-                    <span class="text-[10px] font-normal text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
-                      Kvoten ej verifierad (skattad 0.5)
-                    </span>
-                  {/if}
+                  <div class="flex items-center gap-2">
+                    {#if selectedMember}
+                      <button 
+                        type="button" 
+                        on:click={() => selectedMember = null}
+                        class="text-[10px] font-bold text-indigo-600 hover:text-indigo-900 underline flex items-center gap-0.5 lowercase cursor-pointer"
+                      >
+                        Visa alla ({substituteList.length})
+                      </button>
+                    {:else if item.substituteRule && !item.substituteRule.verified}
+                      <span class="text-[10px] font-normal text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
+                        Kvoten ej verifierad (skattad 0.5)
+                      </span>
+                    {/if}
+                  </div>
                 </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {#each substituteList as c, i (c.name + (c.valkrets || '') + i)}
-                    <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs opacity-90">
-                      <span class="font-semibold text-slate-800 truncate">
-                        <span class="text-indigo-600 font-mono text-[11px] mr-1 font-bold">#{i + 1}</span>
-                        {c.name}
+                    {@const isHighlighted = selectedMember ? activeSubNames.has(c.name) : false}
+                    {@const subOrderForMember = selectedMember ? activeSubstitutes.findIndex(s => s.name === c.name) + 1 : 0}
+                    <button
+                      type="button"
+                      on:click={() => onSelectSubstitute(c)}
+                      class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs text-left transition {
+                        selectedMember
+                          ? (isHighlighted
+                              ? 'bg-indigo-50 border-indigo-400 ring-2 ring-indigo-500/30 text-indigo-950 font-bold shadow-xs opacity-100 cursor-pointer'
+                              : 'bg-white/60 border-slate-100 text-slate-400 opacity-40 hover:opacity-75 cursor-pointer')
+                          : 'bg-white border-slate-200 text-slate-800 opacity-90 hover:border-indigo-300 hover:bg-indigo-50/40 cursor-pointer'
+                      }"
+                    >
+                      <span class="font-semibold truncate">
+                        <span class="{isHighlighted ? 'text-indigo-700 font-black' : 'text-indigo-600 font-bold'} font-mono text-[11px] mr-1">
+                          #{i + 1}
+                        </span>
+                        <span class={isHighlighted ? 'text-indigo-950 font-black' : ''}>{c.name}</span>
                         {#if c.valkrets}
                           <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
                         {/if}
                       </span>
-                      {#if c.age}
-                        <span class="text-[10px] text-slate-400 font-medium shrink-0 ml-1">{c.age} år</span>
-                      {/if}
-                    </div>
+                      <div class="flex items-center gap-1.5 shrink-0 ml-1">
+                        {#if isHighlighted}
+                          <span class="text-[9px] font-mono font-extrabold bg-indigo-600 text-white px-1.5 py-0.5 rounded-md shrink-0 shadow-2xs">
+                            Ersättare #{subOrderForMember}
+                          </span>
+                        {:else if c.age}
+                          <span class="text-[10px] text-slate-400 font-medium">{c.age} år</span>
+                        {/if}
+                      </div>
+                    </button>
                   {/each}
                 </div>
               </div>
