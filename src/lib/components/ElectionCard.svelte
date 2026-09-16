@@ -345,7 +345,13 @@
                 <!-- Region: Ersättare kopplas PER LEDAMOT enligt Vallagen (top 3 un-elected candidates on ballot list) -->
                 <div class="space-y-2">
                   {#each regularList as member, i (member.name + (member.valkrets || '') + i)}
-                    {@const memberSubs = (hasRoles ? substituteList : candidatesList.filter(c => !regularList.some(r => r.name === c.name))).slice(0, 3)}
+                    {@const valkretsSeats = regularList.filter(r => member.valkrets ? r.valkrets === member.valkrets : true).length}
+                    {@const subsNeeded = Math.max(3, valkretsSeats)}
+                    {@const matchingSubs = member.valkrets ? substituteList.filter(s => s.valkrets === member.valkrets) : substituteList}
+                    {@const memberSubs = hasRoles 
+                      ? (matchingSubs.length > 0 ? matchingSubs.slice(0, subsNeeded) : substituteList.slice(0, subsNeeded))
+                      : candidatesList.filter(c => !regularList.some(r => r.name === c.name)).slice(0, subsNeeded)
+                    }
                     <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
                       <div class="flex items-center justify-between font-bold text-slate-900 text-xs">
                         <span class="flex items-center gap-1 truncate">
@@ -364,7 +370,7 @@
                         <div class="pt-1.5 border-t border-slate-100 space-y-1">
                           <div class="text-[10px] font-extrabold text-indigo-700 uppercase tracking-wider flex items-center gap-1">
                             <UserPlus class="w-3 h-3 text-indigo-500" />
-                            <span>Ersättare för {member.name.split(' ')[0]} (3 sökes)</span>
+                            <span>Ersättare för {member.name.split(' ')[0]} ({subsNeeded} sökes)</span>
                           </div>
                           <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
                             {#each memberSubs as sub, subIdx}
