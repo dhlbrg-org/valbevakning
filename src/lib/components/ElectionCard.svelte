@@ -342,10 +342,10 @@
               {#if regularList.length === 0}
                 <p class="text-[11px] text-slate-500 italic px-1">Inga ordinarie mandat säkrade ännu.</p>
               {:else if type === 'region'}
-                <!-- Region: Ersättare kopplas PER LEDAMOT enligt Vallagen -->
+                <!-- Region: Ersättare kopplas PER LEDAMOT enligt Vallagen (top 3 un-elected candidates on ballot list) -->
                 <div class="space-y-2">
                   {#each regularList as member, i (member.name + (member.valkrets || '') + i)}
-                    {@const memberSubs = substituteList.filter(s => !s.valkrets || s.valkrets === member.valkrets).slice(i * 3, (i + 1) * 3)}
+                    {@const memberSubs = (hasRoles ? substituteList : candidatesList.filter(c => !regularList.some(r => r.name === c.name))).slice(0, 3)}
                     <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5 shadow-2xs">
                       <div class="flex items-center justify-between font-bold text-slate-900 text-xs">
                         <span class="flex items-center gap-1 truncate">
