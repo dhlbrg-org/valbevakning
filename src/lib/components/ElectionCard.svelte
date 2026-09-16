@@ -417,15 +417,9 @@
                             <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
                           {/if}
                         </span>
-                        <div class="flex items-center gap-1 shrink-0 ml-1">
-                          {#if isSelected}
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white px-1.5 py-0.5 rounded shadow-2xs">
-                              Markerad
-                            </span>
-                          {:else if c.age}
-                            <span class="text-[10px] text-slate-500 font-medium">{c.age} år</span>
-                          {/if}
-                        </div>
+                        {#if c.age}
+                          <span class="text-[10px] {isSelected ? 'text-emerald-800 font-bold' : 'text-slate-500 font-medium'} shrink-0 ml-1">{c.age} år</span>
+                        {/if}
                       </button>
                     {:else}
                       <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
