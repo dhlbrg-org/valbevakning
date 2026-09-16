@@ -1356,10 +1356,9 @@ async function fetchLiveMunicipalityData(
   const thresholdVotesCount = Math.ceil(totalValidVotes * (thresholdPct / 100));
   const votesDiffFromThreshold = mpVotesCount - thresholdVotesCount;
 
-  const isOverThreshold = mpVotesPct >= thresholdPct && votesDiffFromThreshold >= 0;
-  if (!isOverThreshold) {
-    mpMandates = 0;
-  }
+  // Preserve official mandate allocation from Valmyndigheten if mandates were won
+  const hasMandate = mpMandates > 0;
+  const isOverThreshold = hasMandate || (mpVotesPct >= thresholdPct);
 
   // Calculate Sainte-Laguë quotients across all parties
   interface QuotientItem {
@@ -1409,7 +1408,6 @@ async function fetchLiveMunicipalityData(
     votesToLoseMandate = Math.min(voteDropToLoseQuotient, voteDropToLoseSparr);
   }
 
-  const hasMandate = mpMandates > 0 && isOverThreshold;
   const previousMandates = mpMandates - mpMandatesChange;
   const isNewRegionWithMandate = hasMandate && previousMandates <= 0;
 
