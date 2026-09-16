@@ -1,0 +1,2615 @@
+{
+  "election_year": 2026,
+  "municipalities": [
+    {
+      "code": "0114",
+      "name": "Upplands Väsby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0115",
+      "name": "Vallentuna",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0117",
+      "name": "Österåker",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0120",
+      "name": "Värmdö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0123",
+      "name": "Järfälla",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0125",
+      "name": "Ekerö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0126",
+      "name": "Huddinge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0127",
+      "name": "Botkyrka",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0128",
+      "name": "Salem",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0136",
+      "name": "Haninge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0138",
+      "name": "Tyresö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0139",
+      "name": "Upplands-Bro",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0140",
+      "name": "Nykvarn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0160",
+      "name": "Täby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0162",
+      "name": "Danderyd",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0163",
+      "name": "Sollentuna",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0180",
+      "name": "Stockholm",
+      "substitute_ratio": 0.5,
+      "source_url": "https://edox.stockholm.se/proffs/Protokoll/Kommunfullmaktige",
+      "source_title": "Stockholms kommunfullmäktiges beslut om ersättarkvot för mandatperioden 2026-2030",
+      "decision_date": "2026-02-16",
+      "verified": true
+    },
+    {
+      "code": "0181",
+      "name": "Södertälje",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0182",
+      "name": "Nacka",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0183",
+      "name": "Sundbyberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0184",
+      "name": "Solna",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0186",
+      "name": "Lidingö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0187",
+      "name": "Vaxholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0188",
+      "name": "Norrtälje",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0191",
+      "name": "Sigtuna",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0192",
+      "name": "Nynäshamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0305",
+      "name": "Håbo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0319",
+      "name": "Älvkarleby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0330",
+      "name": "Knivsta",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0331",
+      "name": "Heby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0360",
+      "name": "Tierp",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0380",
+      "name": "Uppsala",
+      "substitute_ratio": 0.5,
+      "source_url": "https://www.uppsala.se/kommun-och-politik/organisation/nämnder/kommunfullmäktige/",
+      "source_title": "Uppsala kommunfullmäktige protokoll 2026-02-23",
+      "decision_date": "2026-02-23",
+      "verified": true
+    },
+    {
+      "code": "0381",
+      "name": "Enköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0382",
+      "name": "Östhammar",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0428",
+      "name": "Vingåker",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0461",
+      "name": "Gnesta",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0480",
+      "name": "Nyköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0481",
+      "name": "Oxelösund",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0482",
+      "name": "Flen",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0483",
+      "name": "Katrineholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0484",
+      "name": "Eskilstuna",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0486",
+      "name": "Strängnäs",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0488",
+      "name": "Trosa",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0509",
+      "name": "Ödeshög",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0512",
+      "name": "Ydre",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0513",
+      "name": "Kinda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0560",
+      "name": "Boxholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0561",
+      "name": "Åtvidaberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0562",
+      "name": "Finspång",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0563",
+      "name": "Valdemarsvik",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0580",
+      "name": "Linköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0581",
+      "name": "Norrköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0582",
+      "name": "Söderköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0583",
+      "name": "Motala",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0584",
+      "name": "Vadstena",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0586",
+      "name": "Mjölby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0604",
+      "name": "Aneby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0617",
+      "name": "Gnosjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0642",
+      "name": "Mullsjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0643",
+      "name": "Habo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0662",
+      "name": "Gislaved",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0665",
+      "name": "Vaggeryd",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0680",
+      "name": "Jönköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0682",
+      "name": "Nässjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0683",
+      "name": "Värnamo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0684",
+      "name": "Sävsjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0685",
+      "name": "Vetlanda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0686",
+      "name": "Eksjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0687",
+      "name": "Tranås",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0760",
+      "name": "Uppvidinge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0761",
+      "name": "Lessebo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0763",
+      "name": "Tingsryd",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0764",
+      "name": "Alvesta",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0765",
+      "name": "Älmhult",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0767",
+      "name": "Markaryd",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0780",
+      "name": "Växjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0781",
+      "name": "Ljungby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0821",
+      "name": "Högsby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0834",
+      "name": "Torsås",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0840",
+      "name": "Mörbylånga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0860",
+      "name": "Hultsfred",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0861",
+      "name": "Mönsterås",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0862",
+      "name": "Emmaboda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0880",
+      "name": "Kalmar",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0881",
+      "name": "Nybro",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0882",
+      "name": "Oskarshamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0883",
+      "name": "Västervik",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0884",
+      "name": "Vimmerby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0885",
+      "name": "Borgholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "0980",
+      "name": "Gotland",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1060",
+      "name": "Olofström",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1080",
+      "name": "Karlskrona",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1081",
+      "name": "Ronneby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1082",
+      "name": "Karlshamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1083",
+      "name": "Sölvesborg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1214",
+      "name": "Svalöv",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1230",
+      "name": "Staffanstorp",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1231",
+      "name": "Burlöv",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1233",
+      "name": "Vellinge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1256",
+      "name": "Östra Göinge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1257",
+      "name": "Örkelljunga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1260",
+      "name": "Bjuv",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1261",
+      "name": "Kävlinge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1262",
+      "name": "Lomma",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1263",
+      "name": "Svedala",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1264",
+      "name": "Skurup",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1265",
+      "name": "Sjöbo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1266",
+      "name": "Hörby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1267",
+      "name": "Höör",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1270",
+      "name": "Tomelilla",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1272",
+      "name": "Bromölla",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1273",
+      "name": "Osby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1275",
+      "name": "Perstorp",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1276",
+      "name": "Klippan",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1277",
+      "name": "Åstorp",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1278",
+      "name": "Båstad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1280",
+      "name": "Malmö",
+      "substitute_ratio": 0.5,
+      "source_url": "https://malmo.se/Om-Malmo-stad/Politik-och-beslut/Kommunfullmaktige/Protokoll.html",
+      "source_title": "Malmö kommunfullmäktige protokoll 2026-02-19",
+      "decision_date": "2026-02-19",
+      "verified": true
+    },
+    {
+      "code": "1281",
+      "name": "Lund",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1282",
+      "name": "Landskrona",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1283",
+      "name": "Helsingborg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1284",
+      "name": "Höganäs",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1285",
+      "name": "Eslöv",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1286",
+      "name": "Ystad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1287",
+      "name": "Trelleborg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1290",
+      "name": "Kristianstad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1291",
+      "name": "Simrishamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1292",
+      "name": "Ängelholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1293",
+      "name": "Hässleholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1315",
+      "name": "Hylte",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1380",
+      "name": "Halmstad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1381",
+      "name": "Laholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1382",
+      "name": "Falkenberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1383",
+      "name": "Varberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1384",
+      "name": "Kungsbacka",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1401",
+      "name": "Härryda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1402",
+      "name": "Partille",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1407",
+      "name": "Öckerö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1415",
+      "name": "Stenungsund",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1419",
+      "name": "Tjörn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1421",
+      "name": "Orust",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1427",
+      "name": "Sotenäs",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1430",
+      "name": "Munkedal",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1435",
+      "name": "Tanum",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1438",
+      "name": "Dals-Ed",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1439",
+      "name": "Färgelanda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1440",
+      "name": "Ale",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1441",
+      "name": "Lerum",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1442",
+      "name": "Vårgårda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1443",
+      "name": "Bollebygd",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1444",
+      "name": "Grästorp",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1445",
+      "name": "Essunga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1446",
+      "name": "Karlsborg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1447",
+      "name": "Gullspång",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1452",
+      "name": "Tranemo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1460",
+      "name": "Bengtsfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1461",
+      "name": "Mellerud",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1462",
+      "name": "Lilla Edet",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1463",
+      "name": "Mark",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1465",
+      "name": "Svenljunga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1466",
+      "name": "Herrljunga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1470",
+      "name": "Vara",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1471",
+      "name": "Götene",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1472",
+      "name": "Tibro",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1473",
+      "name": "Töreboda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1480",
+      "name": "Göteborg",
+      "substitute_ratio": 0.5,
+      "source_url": "https://goteborg.se/wps/portal/enhetssida/kommunfullmaktige/protokoll",
+      "source_title": "Göteborgs kommunfullmäktiges sammanträde 2026-02-12 § 14",
+      "decision_date": "2026-02-12",
+      "verified": true
+    },
+    {
+      "code": "1481",
+      "name": "Mölndal",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1482",
+      "name": "Kungälv",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1484",
+      "name": "Lysekil",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1485",
+      "name": "Uddevalla",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1486",
+      "name": "Strömstad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1487",
+      "name": "Vänersborg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1488",
+      "name": "Trollhättan",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1489",
+      "name": "Alingsås",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1490",
+      "name": "Borås",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1491",
+      "name": "Ulricehamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1492",
+      "name": "Åmål",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1493",
+      "name": "Mariestad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1494",
+      "name": "Lidköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1495",
+      "name": "Skara",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1496",
+      "name": "Skövde",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1497",
+      "name": "Hjo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1498",
+      "name": "Tidaholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1499",
+      "name": "Falköping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1715",
+      "name": "Kil",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1730",
+      "name": "Eda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1737",
+      "name": "Torsby",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1760",
+      "name": "Storfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1761",
+      "name": "Hammarö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1762",
+      "name": "Munkfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1763",
+      "name": "Forshaga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1764",
+      "name": "Grums",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1765",
+      "name": "Årjäng",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1766",
+      "name": "Sunne",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1780",
+      "name": "Karlstad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1781",
+      "name": "Kristinehamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1782",
+      "name": "Filipstad",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1783",
+      "name": "Hagfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1784",
+      "name": "Arvika",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1785",
+      "name": "Säffle",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1814",
+      "name": "Lekeberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1860",
+      "name": "Laxå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1861",
+      "name": "Hallsberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1862",
+      "name": "Degerfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1863",
+      "name": "Hällefors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1864",
+      "name": "Ljusnarsberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1880",
+      "name": "Örebro",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1881",
+      "name": "Kumla",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1882",
+      "name": "Askersund",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1883",
+      "name": "Karlskoga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1884",
+      "name": "Nora",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1885",
+      "name": "Lindesberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1904",
+      "name": "Skinnskatteberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1907",
+      "name": "Surahammar",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1960",
+      "name": "Kungsör",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1961",
+      "name": "Hallstahammar",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1962",
+      "name": "Norberg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1980",
+      "name": "Västerås",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1981",
+      "name": "Sala",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1982",
+      "name": "Fagersta",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1983",
+      "name": "Köping",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "1984",
+      "name": "Arboga",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2021",
+      "name": "Vansbro",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2023",
+      "name": "Malung-Sälen",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2026",
+      "name": "Gagnef",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2029",
+      "name": "Leksand",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2031",
+      "name": "Rättvik",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2034",
+      "name": "Orsa",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2039",
+      "name": "Älvdalen",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2061",
+      "name": "Smedjebacken",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2062",
+      "name": "Mora",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2080",
+      "name": "Falun",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2081",
+      "name": "Borlänge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2082",
+      "name": "Säter",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2083",
+      "name": "Hedemora",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2084",
+      "name": "Avesta",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2085",
+      "name": "Ludvika",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2101",
+      "name": "Ockelbo",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2104",
+      "name": "Hofors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2121",
+      "name": "Ovanåker",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2132",
+      "name": "Nordanstig",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2161",
+      "name": "Ljusdal",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2180",
+      "name": "Gävle",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2181",
+      "name": "Sandviken",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2182",
+      "name": "Söderhamn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2183",
+      "name": "Bollnäs",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2184",
+      "name": "Hudiksvall",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2260",
+      "name": "Ånge",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2262",
+      "name": "Timrå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2280",
+      "name": "Härnösand",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2281",
+      "name": "Sundsvall",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2282",
+      "name": "Kramfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2283",
+      "name": "Sollefteå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2284",
+      "name": "Örnsköldsvik",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2303",
+      "name": "Ragunda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2305",
+      "name": "Bräcke",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2309",
+      "name": "Krokom",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2313",
+      "name": "Strömsund",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2321",
+      "name": "Åre",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2326",
+      "name": "Berg",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2361",
+      "name": "Härjedalen",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2380",
+      "name": "Östersund",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2401",
+      "name": "Nordmaling",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2403",
+      "name": "Bjurholm",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2404",
+      "name": "Vindeln",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2409",
+      "name": "Robertsfors",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2417",
+      "name": "Norsjö",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2418",
+      "name": "Malå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2421",
+      "name": "Storuman",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2422",
+      "name": "Sorsele",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2425",
+      "name": "Dorotea",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2460",
+      "name": "Vännäs",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2462",
+      "name": "Vilhelmina",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2463",
+      "name": "Åsele",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2480",
+      "name": "Umeå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2481",
+      "name": "Lycksele",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2482",
+      "name": "Skellefteå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2505",
+      "name": "Arvidsjaur",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2506",
+      "name": "Arjeplog",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2510",
+      "name": "Jokkmokk",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2513",
+      "name": "Överkalix",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2514",
+      "name": "Kalix",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2518",
+      "name": "Övertorneå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2521",
+      "name": "Pajala",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2523",
+      "name": "Gällivare",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2560",
+      "name": "Älvsbyn",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2580",
+      "name": "Luleå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2581",
+      "name": "Piteå",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2582",
+      "name": "Boden",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2583",
+      "name": "Haparanda",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    },
+    {
+      "code": "2584",
+      "name": "Kiruna",
+      "substitute_ratio": null,
+      "source_url": null,
+      "source_title": null,
+      "decision_date": null,
+      "verified": false
+    }
+  ]
+}

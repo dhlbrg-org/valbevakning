@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { page } from '$app/stores';
-  import { Building2, Landmark } from 'lucide-svelte';
+  import { Building2, Landmark, Vote } from 'lucide-svelte';
 </script>
 
 <div class="min-h-screen bg-slate-50">
@@ -15,14 +15,21 @@
       <div class="flex items-center gap-1 bg-emerald-900/60 p-1 rounded-xl border border-emerald-800/80">
         <a 
           href="/" 
-          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {$page.url.pathname === '/' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'}"
+          class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {$page.url.pathname === '/' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'}"
+        >
+          <Vote class="w-3.5 h-3.5" />
+          <span>Riksdagen</span>
+        </a>
+        <a 
+          href="/region" 
+          class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {$page.url.pathname.startsWith('/region') ? 'bg-emerald-600 text-white shadow' : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'}"
         >
           <Landmark class="w-3.5 h-3.5" />
           <span>Regioner</span>
         </a>
         <a 
           href="/kommuner" 
-          class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {$page.url.pathname.startsWith('/kommuner') ? 'bg-emerald-600 text-white shadow' : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'}"
+          class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {$page.url.pathname.startsWith('/kommuner') ? 'bg-emerald-600 text-white shadow' : 'text-emerald-200 hover:text-white hover:bg-emerald-800/50'}"
         >
           <Building2 class="w-3.5 h-3.5" />
           <span>Kommuner</span>

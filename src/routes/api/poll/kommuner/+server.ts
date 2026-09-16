@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import type { MunicipalityResult, MunicipalityPollResponse, PollSummary, Candidate } from '$lib/types';
+import type { MunicipalityResult, MunicipalityPollResponse, PollSummary, Candidate, MatchedDiff } from '$lib/types';
 import AdmZip from 'adm-zip';
 
 const MUNICIPALITY_CODES: { code: string; name: string }[] = [
@@ -1166,17 +1166,18 @@ const MUNICIPALITY_CODES: { code: string; name: string }[] = [
   }
 ];
 
-let mpRegisteredMunicipalitiesCache: { timestamp: number; codes: Set<string>; candidates: Map<string, Candidate[]> } | null = null;
+import { simulateElectedCandidates, type ValkretsCandidatesMap } from '$lib/server/candidates';
 
-async function getMpRegisteredMunicipalities(): Promise<{ codes: Set<string>; candidates: Map<string, Candidate[]> }> {
+let mpRegisteredMunicipalitiesCache: { timestamp: number; codes: Set<string>; candidates: Map<string, ValkretsCandidatesMap> } | null = null;
+
+async function getMpRegisteredMunicipalities(): Promise<{ codes: Set<string>; candidates: Map<string, ValkretsCandidatesMap> }> {
   const now = Date.now();
   if (mpRegisteredMunicipalitiesCache && (now - mpRegisteredMunicipalitiesCache.timestamp) < 3600 * 1000) {
     return mpRegisteredMunicipalitiesCache;
   }
 
   const set = new Set<string>();
-  const candidatesMap = new Map<string, Candidate[]>();
-  const tempMap = new Map<string, Candidate[]>();
+  const candidatesMap = new Map<string, ValkretsCandidatesMap>();
 
   const years = ['2026', '2022'];
   for (const year of years) {
@@ -1185,23 +1186,23 @@ async function getMpRegisteredMunicipalities(): Promise<{ codes: Set<string>; ca
       const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
       if (res.ok) {
         const text = await res.text();
-        const lines = text.split(/\r?\n/);
+        const lines = text.split(/\r\n|\n|\r/);
         for (let i = 1; i < lines.length; i++) {
           const cols = lines[i].split(';');
-          if (cols[0] === 'KF' && (cols[5] === 'Miljöpartiet de gröna' || cols[6] === 'MP' || cols[7] === '0055')) {
+          if (cols[0] && cols[0].endsWith('KF') && (cols[5] === 'Miljöpartiet de gröna' || cols[6] === 'MP' || cols[7] === '0055')) {
             const mCode = cols[1];
-            if (mCode) {
+            const vkCode = cols[3] || 'default';
+            const vkName = cols[4] || '';
+            const order = parseInt(cols[11], 10) || 999;
+            const name = cols[16];
+            const age = cols[17];
+            const info = cols[20];
+            if (mCode && name) {
               set.add(mCode);
-              const order = parseInt(cols[11], 10) || 999;
-              const name = cols[16];
-              const age = cols[17];
-              const info = cols[20];
-              if (name) {
-                if (!tempMap.has(mCode)) {
-                  tempMap.set(mCode, []);
-                }
-                tempMap.get(mCode)!.push({ order, name, age, info });
-              }
+              if (!candidatesMap.has(mCode)) candidatesMap.set(mCode, new Map());
+              const vkMap = candidatesMap.get(mCode)!;
+              if (!vkMap.has(vkCode)) vkMap.set(vkCode, { name: vkName, candidates: [] });
+              vkMap.get(vkCode)!.candidates.push({ order, name, age, info });
             }
           }
         }
@@ -1212,17 +1213,10 @@ async function getMpRegisteredMunicipalities(): Promise<{ codes: Set<string>; ca
     }
   }
 
-  for (const [mCode, candList] of tempMap.entries()) {
-    candList.sort((a, b) => a.order - b.order);
-    const seenNames = new Set<string>();
-    const unique: Candidate[] = [];
-    for (const c of candList) {
-      if (!seenNames.has(c.name)) {
-        seenNames.add(c.name);
-        unique.push(c);
-      }
+  for (const vkMap of candidatesMap.values()) {
+    for (const vk of vkMap.values()) {
+      vk.candidates.sort((a, b) => a.order - b.order);
     }
-    candidatesMap.set(mCode, unique.slice(0, 25));
   }
 
   mpRegisteredMunicipalitiesCache = { timestamp: now, codes: set, candidates: candidatesMap };
@@ -1259,7 +1253,7 @@ async function fetchLiveMunicipalityData(
   phase: 'preliminary' | 'final',
   targetYear: string,
   registeredMpSet: Set<string>,
-  mpCandidatesMap: Map<string, Candidate[]>
+  mpCandidatesMap: Map<string, ValkretsCandidatesMap>
 ): Promise<{ result: MunicipalityResult; year: string } | null> {
   const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
   const yearsToTry = targetYear === '2026' ? ['2026', '2022'] : ['2022'];
@@ -1422,7 +1416,19 @@ async function fetchLiveMunicipalityData(
   const districtsCounted = vo.antalValdistriktRaknade || 0;
   const districtsTotal = vo.antalValdistriktSomSkaRaknas || 0;
   const hasRegisteredMpList = registeredMpSet.size > 0 ? registeredMpSet.has(code) : true;
-  const candidates = mpCandidatesMap.get(code) || [];
+  const vkMap = mpCandidatesMap.get(code);
+  const candidates = hasRegisteredMpList ? simulateElectedCandidates(vkMap, mpMandates) : undefined;
+
+  const diffVsPrevious: MatchedDiff = {
+    finalVotes: mpVotesCount,
+    finalVotesPct: mpVotesPct,
+    comparisonVotes: mpVotesCount - mpVotesCountChange,
+    comparisonVotesPct: Number((mpVotesPct - mpVotesPctChange).toFixed(2)),
+    votesDiff: mpVotesCountChange,
+    votesPctDiff: mpVotesPctChange,
+    districtsCounted,
+    districtsTotal
+  };
 
   return {
     year: usedYear,
@@ -1448,7 +1454,9 @@ async function fetchLiveMunicipalityData(
       partyMandates,
       votesToNextMandate,
       votesToLoseMandate,
-      hasRegisteredMpList
+      hasRegisteredMpList,
+      candidates,
+      diffVsPrevious
     }
   };
 }

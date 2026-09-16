@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import type { RegionResult, PollResponse, PollSummary, Candidate } from '$lib/types';
+import type { RegionResult, PollResponse, PollSummary, Candidate, MatchedDiff } from '$lib/types';
 import AdmZip from 'adm-zip';
 
 // Standard 20 Swedish region codes and names
@@ -27,16 +27,17 @@ const REGION_CODES: { code: string; name: string }[] = [
   { code: '25', name: 'Norrbotten' }
 ];
 
-let mpRegisteredRegionsCache: { timestamp: number; candidates: Map<string, Candidate[]> } | null = null;
+import { simulateElectedCandidates, type ValkretsCandidatesMap } from '$lib/server/candidates';
 
-async function getMpRegisteredRegions(): Promise<Map<string, Candidate[]>> {
+let mpRegisteredRegionsCache: { timestamp: number; candidates: Map<string, ValkretsCandidatesMap> } | null = null;
+
+async function getMpRegisteredRegions(): Promise<Map<string, ValkretsCandidatesMap>> {
   const now = Date.now();
   if (mpRegisteredRegionsCache && (now - mpRegisteredRegionsCache.timestamp) < 3600 * 1000) {
     return mpRegisteredRegionsCache.candidates;
   }
 
-  const tempMap = new Map<string, Candidate[]>();
-  const candidatesMap = new Map<string, Candidate[]>();
+  const candidatesMap = new Map<string, ValkretsCandidatesMap>();
 
   const years = ['2026', '2022'];
   for (const year of years) {
@@ -45,39 +46,34 @@ async function getMpRegisteredRegions(): Promise<Map<string, Candidate[]>> {
       const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
       if (res.ok) {
         const text = await res.text();
-        const lines = text.split(/\r?\n/);
+        const lines = text.split(/\r\n|\n|\r/);
         for (let i = 1; i < lines.length; i++) {
           const cols = lines[i].split(';');
-          if ((cols[0] === 'RF' || cols[0] === 'JRF') && (cols[5] === 'Miljöpartiet de gröna' || cols[6] === 'MP' || cols[7] === '0055')) {
+          if (cols[0] && cols[0].endsWith('RF') && (cols[5] === 'Miljöpartiet de gröna' || cols[6] === 'MP' || cols[7] === '0055')) {
             const rCode = cols[1]?.slice(0, 2);
-            if (rCode) {
-              const order = parseInt(cols[11], 10) || 999;
-              const name = cols[16];
-              const age = cols[17];
-              const info = cols[20];
-              if (name) {
-                if (!tempMap.has(rCode)) tempMap.set(rCode, []);
-                tempMap.get(rCode)!.push({ order, name, age, info });
-              }
+            const vkCode = cols[3] || 'default';
+            const vkName = cols[4] || '';
+            const order = parseInt(cols[11], 10) || 999;
+            const name = cols[16];
+            const age = cols[17];
+            const info = cols[20];
+            if (rCode && name) {
+              if (!candidatesMap.has(rCode)) candidatesMap.set(rCode, new Map());
+              const vkMap = candidatesMap.get(rCode)!;
+              if (!vkMap.has(vkCode)) vkMap.set(vkCode, { name: vkName, candidates: [] });
+              vkMap.get(vkCode)!.candidates.push({ order, name, age, info });
             }
           }
         }
-        if (tempMap.size > 0) break;
+        if (candidatesMap.size > 0) break;
       }
     } catch (e) {}
   }
 
-  for (const [rCode, candList] of tempMap.entries()) {
-    candList.sort((a, b) => a.order - b.order);
-    const seenNames = new Set<string>();
-    const unique: Candidate[] = [];
-    for (const c of candList) {
-      if (!seenNames.has(c.name)) {
-        seenNames.add(c.name);
-        unique.push(c);
-      }
+  for (const vkMap of candidatesMap.values()) {
+    for (const vk of vkMap.values()) {
+      vk.candidates.sort((a, b) => a.order - b.order);
     }
-    candidatesMap.set(rCode, unique.slice(0, 25));
   }
 
   mpRegisteredRegionsCache = { timestamp: now, candidates: candidatesMap };
@@ -108,7 +104,7 @@ async function detectActiveRegionYear(phase: 'preliminary' | 'final'): Promise<s
   return '2022';
 }
 
-async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final', targetYear: string, rfCandidatesMap: Map<string, Candidate[]>): Promise<{ result: RegionResult; year: string } | null> {
+async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final', targetYear: string, rfCandidatesMap: Map<string, ValkretsCandidatesMap>): Promise<{ result: RegionResult; year: string } | null> {
   const filePrefix = phase === 'final' ? 'slutlig' : 'preliminar';
   
   // Try 2026 live zip first, fallback to 2022 live zip from val.se if 2026 is not published yet
@@ -271,7 +267,19 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final',
 
   const districtsCounted = vo.antalValdistriktRaknade || 0;
   const districtsTotal = vo.antalValdistriktSomSkaRaknas || 0;
-  const candidates = rfCandidatesMap.get(code) || [];
+  const vkMap = rfCandidatesMap.get(code);
+  const candidates = simulateElectedCandidates(vkMap, mpMandates, 3);
+
+  const diffVsPrevious: MatchedDiff = {
+    finalVotes: mpVotesCount,
+    finalVotesPct: mpVotesPct,
+    comparisonVotes: mpVotesCount - mpVotesCountChange,
+    comparisonVotesPct: Number((mpVotesPct - mpVotesPctChange).toFixed(2)),
+    votesDiff: mpVotesCountChange,
+    votesPctDiff: mpVotesPctChange,
+    districtsCounted,
+    districtsTotal
+  };
 
   return {
     year: usedYear,
@@ -297,7 +305,8 @@ async function fetchLiveRegionData(code: string, phase: 'preliminary' | 'final',
       votesToNextMandate,
       votesToLoseMandate,
       hasRegisteredMpList: true,
-      candidates
+      candidates,
+      diffVsPrevious
     }
   };
 }

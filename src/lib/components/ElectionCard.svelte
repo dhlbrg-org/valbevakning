@@ -14,8 +14,8 @@
     UserPlus
   } from 'lucide-svelte';
 
-  export let item: RegionResult | MunicipalityResult;
-  export let type: 'region' | 'kommun' = 'region';
+  export let item: RegionResult | MunicipalityResult | any;
+  export let type: 'region' | 'kommun' | 'riksdag' = 'region';
   export let selectedParties: string[] = [];
   export let onToggleParty: (partyCode: string) => void = () => {};
   export let onClearCoalition: () => void = () => {};
@@ -46,10 +46,10 @@
   }
 
   $: coalitionSummary = (() => {
-    if (!selectedParties || selectedParties.length === 0) return null;
-    const parties = (item.partyMandates || []).filter((p) => selectedParties.includes(p.code));
-    const coalitionMandates = parties.reduce((sum, p) => sum + p.mandates, 0);
-    const totalMandates = item.totalMandates || (item.partyMandates || []).reduce((sum, p) => sum + p.mandates, 0);
+    if (type === 'riksdag' || !selectedParties || selectedParties.length === 0) return null;
+    const parties = (item.partyMandates || []).filter((p: any) => selectedParties.includes(p.code));
+    const coalitionMandates = parties.reduce((sum: number, p: any) => sum + p.mandates, 0);
+    const totalMandates = item.totalMandates || (item.partyMandates || []).reduce((sum: number, p: any) => sum + p.mandates, 0);
     const majorityThreshold = Math.floor(totalMandates / 2) + 1;
     const isMajority = coalitionMandates >= majorityThreshold;
     const diff = majorityThreshold - coalitionMandates;
@@ -64,6 +64,28 @@
       diff
     };
   })();
+
+  let selectedListIndex = 0;
+  $: if (item && selectedListIndex >= (item.candidateLists?.length || 1)) {
+    selectedListIndex = 0;
+  }
+
+  $: activeCandidateList = (item.candidateLists && item.candidateLists.length > 0)
+    ? item.candidateLists[selectedListIndex]?.candidates || []
+    : (item.candidates || []);
+
+  $: candidatesList = activeCandidateList as any[];
+  $: hasRoles = candidatesList.some((c: any) => c.role !== undefined);
+  $: regularList = hasRoles 
+    ? candidatesList.filter((c: any) => c.role === 'Ordinarie')
+    : (item.mpMandates ? candidatesList.slice(0, item.mpMandates) : candidatesList);
+  $: minSubs = type === 'region' ? 3 : 2;
+  $: substituteList = hasRoles
+    ? candidatesList.filter((c: any) => c.role === 'Ersättare')
+    : (item.mpMandates > 0 ? candidatesList.slice(item.mpMandates, item.mpMandates + Math.max(minSubs, Math.ceil(item.mpMandates / 2))) : []);
+  $: regularCount = regularList.length;
+  $: substituteCount = substituteList.length;
+  $: totalPartyMandates = item.totalMandates || (item.partyMandates || []).reduce((s: number, p: any) => s + p.mandates, 0);
 </script>
 
 <div 
@@ -87,29 +109,31 @@
         </h3>
       </div>
 
-      <div class="flex items-center gap-1.5 shrink-0">
-        {#if item.isNewRegionWithMandate}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white shadow-sm shrink-0">
-            <Sparkles class="w-3.5 h-3.5 text-emerald-200" />
-            Ny {type === 'region' ? 'region' : 'kommun'}!
-          </span>
-        {:else if item.hasMandate}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60 shrink-0">
-            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
-            Över spärren
-          </span>
-        {:else if item.hasRegisteredMpList === false}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-            <XCircle class="w-3.5 h-3.5 text-slate-400" />
-            Ej anmäld lista
-          </span>
-        {:else}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
-            <AlertTriangle class="w-3.5 h-3.5 text-amber-600" />
-            Under spärren (&lt;{thresholdPct}%)
-          </span>
-        {/if}
-      </div>
+      {#if type !== 'riksdag'}
+        <div class="flex items-center gap-1.5 shrink-0">
+          {#if item.isNewRegionWithMandate}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white shadow-sm shrink-0">
+              <Sparkles class="w-3.5 h-3.5 text-emerald-200" />
+              Ny {type === 'region' ? 'region' : 'kommun'}!
+            </span>
+          {:else if item.hasMandate}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60 shrink-0">
+              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
+              Över spärren
+            </span>
+          {:else if item.hasRegisteredMpList === false}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+              <XCircle class="w-3.5 h-3.5 text-slate-400" />
+              Ej anmäld lista
+            </span>
+          {:else}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+              <AlertTriangle class="w-3.5 h-3.5 text-amber-600" />
+              Under spärren (&lt;{thresholdPct}%)
+            </span>
+          {/if}
+        </div>
+      {/if}
     </div>
 
     <!-- Counting Districts Progress Bar (Right Under Header) -->
@@ -133,107 +157,135 @@
       </div>
     {/if}
 
-    <!-- Balanced 4-Column Stats Grid (Röster | Röstandel | Mandat | Spärr %) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3 text-center">
-      <div>
-        <span class="block text-[11px] text-slate-500 font-medium">MP Röster</span>
-        <span class="text-sm font-black text-slate-900 block">
-          {formatNumber(item.mpVotesCount)}
-        </span>
-        {#if item.mpVotesCountChange !== undefined && item.mpVotesCountChange !== 0}
-          <span class="block text-[10px] font-extrabold {item.mpVotesCountChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
-            {formatChangeNum(item.mpVotesCountChange)}
+    <!-- Balanced Stats Grid -->
+    {#if type === 'riksdag'}
+      <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3 text-center">
+        <div>
+          <span class="block text-[11px] text-slate-500 font-medium">MP Röster</span>
+          <span class="text-sm font-black text-slate-900 block">
+            {formatNumber(item.mpVotesCount)}
           </span>
-        {/if}
-      </div>
-      <div>
-        <span class="block text-[11px] text-slate-500 font-medium">Röstandel</span>
-        <span class="text-sm font-black block {item.hasMandate ? 'text-emerald-700' : 'text-amber-600'}">
-          {item.mpVotesPct.toFixed(1)}%
-        </span>
-        {#if item.mpVotesPctChange !== undefined && item.mpVotesPctChange !== 0}
-          <span class="block text-[10px] font-extrabold {item.mpVotesPctChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
-            {formatChangePct(item.mpVotesPctChange)}
+          {#if item.mpVotesCountChange !== undefined && item.mpVotesCountChange !== 0}
+            <span class="block text-[10px] font-extrabold {item.mpVotesCountChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              {formatChangeNum(item.mpVotesCountChange)}
+            </span>
+          {/if}
+        </div>
+        <div>
+          <span class="block text-[11px] text-slate-500 font-medium">Röstandel</span>
+          <span class="text-sm font-black block text-emerald-700">
+            {item.mpVotesPct !== undefined ? item.mpVotesPct.toFixed(1) : '0,0'}%
           </span>
-        {/if}
+          {#if item.mpVotesPctChange !== undefined && item.mpVotesPctChange !== 0}
+            <span class="block text-[10px] font-extrabold {item.mpVotesPctChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              {formatChangePct(item.mpVotesPctChange)}
+            </span>
+          {/if}
+        </div>
       </div>
-      <div>
-        <span class="block text-[11px] text-slate-500 font-medium">Mandat</span>
-        <span class="text-sm font-black block {item.hasMandate ? 'text-emerald-700' : 'text-slate-400'}">
-          {item.mpMandates}
-        </span>
-        {#if item.mpMandatesChange !== undefined && item.mpMandatesChange !== 0}
-          <span class="block text-[10px] font-extrabold {item.mpMandatesChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
-            {formatChangeNum(item.mpMandatesChange)}
+    {:else}
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3 text-center">
+        <div>
+          <span class="block text-[11px] text-slate-500 font-medium">MP Röster</span>
+          <span class="text-sm font-black text-slate-900 block">
+            {formatNumber(item.mpVotesCount)}
           </span>
-        {/if}
+          {#if item.mpVotesCountChange !== undefined && item.mpVotesCountChange !== 0}
+            <span class="block text-[10px] font-extrabold {item.mpVotesCountChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              {formatChangeNum(item.mpVotesCountChange)}
+            </span>
+          {/if}
+        </div>
+        <div>
+          <span class="block text-[11px] text-slate-500 font-medium">Röstandel</span>
+          <span class="text-sm font-black block {item.hasMandate ? 'text-emerald-700' : 'text-amber-600'}">
+            {item.mpVotesPct !== undefined ? item.mpVotesPct.toFixed(1) : '0,0'}%
+          </span>
+          {#if item.mpVotesPctChange !== undefined && item.mpVotesPctChange !== 0}
+            <span class="block text-[10px] font-extrabold {item.mpVotesPctChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              {formatChangePct(item.mpVotesPctChange)}
+            </span>
+          {/if}
+        </div>
+        <div>
+          <span class="block text-[11px] text-slate-500 font-medium">Mandat</span>
+          <span class="text-sm font-black block {item.hasMandate ? 'text-emerald-700' : 'text-slate-400'}">
+            {item.mpMandates || 0}
+          </span>
+          {#if item.mpMandatesChange !== undefined && item.mpMandatesChange !== 0}
+            <span class="block text-[10px] font-extrabold {item.mpMandatesChange > 0 ? 'text-emerald-600' : 'text-rose-600'}">
+              {formatChangeNum(item.mpMandatesChange)}
+            </span>
+          {/if}
+        </div>
+        <div>
+          <span class="block text-[11px] text-slate-500 font-medium">Spärr ({thresholdPct}%)</span>
+          <span class="text-sm font-bold text-slate-700 block">
+            {formatNumber(item.thresholdVotesCount)}
+          </span>
+          <span class="block text-[10px] font-semibold text-slate-400">röster</span>
+        </div>
       </div>
-      <div>
-        <span class="block text-[11px] text-slate-500 font-medium">Spärr ({thresholdPct}%)</span>
-        <span class="text-sm font-bold text-slate-700 block">
-          {formatNumber(item.thresholdVotesCount)}
-        </span>
-        <span class="block text-[10px] font-semibold text-slate-400">röster</span>
-      </div>
-    </div>
+    {/if}
 
     <!-- Mandate Proximity Callout Box (Gaining / Losing Mandates) -->
-    <div class="mb-3 p-2.5 bg-slate-50 border border-slate-200/90 rounded-xl space-y-2 text-xs">
-      <!-- Till nästa mandat (+1) -->
-      <div class="flex items-center justify-between text-slate-800">
-        <span class="flex items-center gap-1.5 font-medium">
-          <TrendingUp class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span>Till nästa mandat (+1):</span>
-        </span>
-        <span class="font-extrabold text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded-md border border-emerald-300/60">
-          Saknar {formatNumber(item.votesToNextMandate)} röster
-        </span>
-      </div>
+    {#if type !== 'riksdag' && (item.votesToNextMandate !== undefined || item.votesToLoseMandate !== undefined)}
+      <div class="mb-3 p-2.5 bg-slate-50 border border-slate-200/90 rounded-xl space-y-2 text-xs">
+        <!-- Till nästa mandat (+1) -->
+        {#if item.votesToNextMandate !== undefined}
+          <div class="flex items-center justify-between text-slate-800">
+            <span class="flex items-center gap-1.5 font-medium">
+              <TrendingUp class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Till nästa mandat (+1):</span>
+            </span>
+            <span class="font-extrabold text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded-md border border-emerald-300/60">
+              Saknar {formatNumber(item.votesToNextMandate)} röster
+            </span>
+          </div>
+        {/if}
 
-      <!-- Till godo för sista mandatet -->
-      {#if item.hasMandate}
-        <div class="flex items-center justify-between text-slate-800 pt-1.5 border-t border-slate-200/80">
-          <span class="flex items-center gap-1.5 font-medium">
-            <AlertTriangle class="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>Sista mandat (till godo):</span>
-          </span>
-          <span class="font-extrabold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300/60">
-            +{formatNumber(item.votesToLoseMandate)} röster till godo
-          </span>
-        </div>
-      {/if}
-    </div>
+        <!-- Till godo för sista mandatet -->
+        {#if item.hasMandate && item.votesToLoseMandate !== undefined}
+          <div class="flex items-center justify-between text-slate-800 pt-1.5 border-t border-slate-200/80">
+            <span class="flex items-center gap-1.5 font-medium">
+              <AlertTriangle class="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>Sista mandat (till godo):</span>
+            </span>
+            <span class="font-extrabold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300/60">
+              +{formatNumber(item.votesToLoseMandate)} röster till godo
+            </span>
+          </div>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Röstandel Bar vs Threshold Line -->
-    <div class="space-y-1 mb-1">
-      <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-        <span>Röstandel (vs {thresholdPct}%-spärr)</span>
-        <span class="{item.mpVotesPct >= thresholdPct ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}">
-          {item.mpVotesPct.toFixed(1)}% {item.mpVotesPct >= thresholdPct ? '✓' : ''}
-        </span>
+    {#if type !== 'riksdag'}
+      <div class="space-y-1 mb-1">
+        <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+          <span>Röstandel (vs {thresholdPct}%-spärr)</span>
+          <span class="{item.mpVotesPct >= thresholdPct ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}">
+            {item.mpVotesPct ? item.mpVotesPct.toFixed(1) : '0,0'}% {item.mpVotesPct >= thresholdPct ? '✓' : ''}
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden relative">
+          <!-- Marker line for threshold -->
+          <div 
+            class="absolute top-0 bottom-0 w-0.5 bg-slate-400 z-10" 
+            style="left: {thresholdPct * 10}%"
+            title="{thresholdPct}% spärr"
+          ></div>
+          <!-- Progress bar up to 10% max scale -->
+          <div 
+            class="h-full rounded-full transition-all duration-500 {item.mpVotesPct >= thresholdPct ? 'bg-emerald-500' : 'bg-amber-400'}"
+            style="width: {Math.min(100, ((item.mpVotesPct || 0) / 10) * 100)}%"
+          ></div>
+        </div>
       </div>
-      <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden relative">
-        <!-- Marker line for threshold -->
-        <div 
-          class="absolute top-0 bottom-0 w-0.5 bg-slate-400 z-10" 
-          style="left: {thresholdPct * 10}%"
-          title="{thresholdPct}% spärr"
-        ></div>
-        <!-- Progress bar up to 10% max scale -->
-        <div 
-          class="h-full rounded-full transition-all duration-500 {item.mpVotesPct >= thresholdPct ? 'bg-emerald-500' : 'bg-amber-400'}"
-          style="width: {Math.min(100, (item.mpVotesPct / 10) * 100)}%"
-        ></div>
-      </div>
-    </div>
+    {/if}
 
     <!-- Expandable Candidate List (Ordinarie & Ersättare) -->
     {#if item.candidates && item.candidates.length > 0 && item.hasRegisteredMpList !== false}
-      {@const regularCount = item.mpMandates}
-      {@const substituteCount = regularCount > 0 ? Math.max(1, Math.ceil(regularCount / 2)) : 0}
-      {@const regularList = item.candidates.slice(0, regularCount)}
-      {@const substituteList = regularCount > 0 ? item.candidates.slice(regularCount, regularCount + substituteCount) : []}
-
       <div class="mt-3 pt-2.5 border-t border-slate-100">
         <button 
           type="button"
@@ -242,7 +294,7 @@
         >
           <span class="flex items-center gap-1.5">
             <Users class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            {#if regularCount > 0}
+            {#if regularCount > 0 && type !== 'riksdag'}
               <span>Valda ledamöter ({regularCount} ordinarie + {substituteCount} ersättare)</span>
             {:else}
               <span>Kandidatlista på valsedeln ({item.candidates.length} kandidater)</span>
@@ -259,21 +311,42 @@
 
         {#if showCandidatesList}
           <div class="mt-2 space-y-2.5 p-2.5 bg-slate-50/90 rounded-xl text-xs border border-slate-200/80">
-            <!-- Ordinarie ledamöter -->
+            {#if item.candidateLists && item.candidateLists.length > 1}
+              <div class="flex items-center gap-1.5 pb-2 border-b border-slate-200/80 overflow-x-auto">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-0.5">
+                  Valsedel:
+                </span>
+                {#each item.candidateLists as list, listIdx}
+                  <button
+                    type="button"
+                    on:click={() => selectedListIndex = listIdx}
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0 border flex items-center gap-1.5 {selectedListIndex === listIdx ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm ring-1 ring-emerald-500/30' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'}"
+                  >
+                    <span>{list.listName || `Lista ${list.listNumber}`}</span>
+                    <span class="text-[10px] opacity-80 font-mono font-normal">({list.candidates.length})</span>
+                  </button>
+                {/each}
+              </div>
+            {/if}
+
+            <!-- Ordinarie ledamöter / Kandidater -->
             <div>
               <div class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 <UserCheck class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span>Ordinarie ledamöter ({regularList.length})</span>
+                <span>{type === 'riksdag' ? (item.candidateLists && item.candidateLists.length > 1 ? `Kandidater (${item.candidateLists[selectedListIndex]?.listName || 'Valsedel'})` : 'Kandidater på valsedeln') : `Ordinarie ledamöter (${regularList.length})`}</span>
               </div>
               {#if regularList.length === 0}
                 <p class="text-[11px] text-slate-500 italic px-1">Inga ordinarie mandat säkrade ännu.</p>
               {:else}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {#each regularList as c (c.order)}
+                  {#each regularList as c, i (c.name + (c.valkrets || '') + i)}
                     <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
                       <span class="font-bold text-slate-900 truncate">
                         <span class="text-emerald-700 font-mono text-[11px] mr-1 font-black">#{c.order}</span>
                         {c.name}
+                        {#if c.valkrets}
+                          <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
+                        {/if}
                       </span>
                       {#if c.age}
                         <span class="text-[10px] text-slate-500 font-medium shrink-0 ml-1">{c.age} år</span>
@@ -285,18 +358,28 @@
             </div>
 
             <!-- Ersättare -->
-            {#if substituteList.length > 0}
+            {#if substituteList.length > 0 && type !== 'riksdag'}
               <div class="pt-2 border-t border-slate-200/60">
-                <div class="text-[11px] font-extrabold text-indigo-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                  <UserPlus class="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span>Ersättare ({substituteList.length})</span>
+                <div class="text-[11px] font-extrabold text-indigo-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <span class="flex items-center gap-1">
+                    <UserPlus class="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                    <span>{type === 'region' ? `Ersättare per ledamot (${Math.max(3, regularList.length)} sökes)` : `Ersättare (${substituteList.length})`}</span>
+                  </span>
+                  {#if type === 'kommun' && item.substituteRule && !item.substituteRule.verified}
+                    <span class="text-[10px] font-normal text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">
+                      Kvoten ej verifierad (skattad 0.5)
+                    </span>
+                  {/if}
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {#each substituteList as c (c.order)}
+                  {#each substituteList as c, i (c.name + (c.valkrets || '') + i)}
                     <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs opacity-90">
                       <span class="font-semibold text-slate-800 truncate">
-                        <span class="text-indigo-600 font-mono text-[11px] mr-1 font-bold">#{c.order}</span>
+                        <span class="text-indigo-600 font-mono text-[11px] mr-1 font-bold">#{i + 1}</span>
                         {c.name}
+                        {#if c.valkrets}
+                          <span class="text-[10px] text-slate-400 font-normal block sm:inline font-sans">({c.valkrets})</span>
+                        {/if}
                       </span>
                       {#if c.age}
                         <span class="text-[10px] text-slate-400 font-medium shrink-0 ml-1">{c.age} år</span>
@@ -308,14 +391,14 @@
             {/if}
 
             <!-- Om inga mandat: Visa topp-kandidater på valsedeln -->
-            {#if regularCount === 0 && item.candidates.length > 0}
+            {#if regularCount === 0 && item.candidates.length > 0 && type !== 'riksdag'}
               <div class="pt-2 border-t border-slate-200/60">
                 <div class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <Users class="w-3.5 h-3.5 text-slate-500 shrink-0" />
                   <span>Top-kandidater på anmäld valsedel</span>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {#each item.candidates.slice(0, 8) as c (c.order)}
+                  {#each item.candidates.slice(0, 8) as c, i (c.name + (c.order || '') + i)}
                     <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
                       <span class="font-medium text-slate-800 truncate">
                         <span class="text-slate-400 font-mono text-[11px] mr-1">#{c.order}</span>
@@ -329,6 +412,12 @@
                 </div>
               </div>
             {/if}
+
+            <!-- Spec section 1 & 13: Prognos- och personröstvarning -->
+            <div class="mt-2.5 p-2 rounded-lg bg-amber-50/90 border border-amber-200/80 text-amber-900 text-[11px] font-medium flex items-center gap-1.5">
+              <AlertTriangle class="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>⚠ Prognos utan personröster – personröster ännu ej medräknade.</span>
+            </div>
           </div>
         {/if}
       </div>
@@ -336,12 +425,12 @@
   </div>
 
   <!-- Bottom Section: Mandatfördelning & Interactive Majority Builder -->
-  {#if item.partyMandates && item.partyMandates.length > 0}
+  {#if type !== 'riksdag' && item.partyMandates && item.partyMandates.length > 0}
     <div class="pt-3 border-t border-slate-100 space-y-2 mt-2">
       <div class="text-[11px] font-semibold text-slate-500 flex items-center justify-between">
         <span>Mandatfördelning i {councilTitle}</span>
         <span class="text-[10px] text-slate-400 font-normal">
-          Totalt {item.totalMandates || item.partyMandates.reduce((s, p) => s + p.mandates, 0)} mandat
+          Totalt {totalPartyMandates} mandat
         </span>
       </div>
 

@@ -1,0 +1,29 @@
+{
+  "election_year": 2026,
+  "default_rule": {
+    "type": "per_member_per_constituency",
+    "formula": "max(3, party_seats_in_constituency)"
+  },
+  "regions": [
+    "Region Stockholm",
+    "Region Uppsala",
+    "Region Sörmland",
+    "Region Östergötland",
+    "Region Jönköpings län",
+    "Region Kronoberg",
+    "Region Kalmar län",
+    "Region Blekinge",
+    "Region Skåne",
+    "Region Halland",
+    "Västra Götalandsregionen",
+    "Region Värmland",
+    "Region Örebro län",
+    "Region Västmanland",
+    "Region Dalarna",
+    "Region Gävleborg",
+    "Region Västernorrland",
+    "Region Jämtland Härjedalen",
+    "Region Västerbotten",
+    "Region Norrbotten"
+  ]
+}

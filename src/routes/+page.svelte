@@ -1,202 +1,98 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import type { PollResponse, RegionResult } from '$lib/types';
+  import type { RiksdagPollResponse, RiksdagResult } from '$lib/types';
   import ElectionCard from '$lib/components/ElectionCard.svelte';
-  import SummaryMetricsBar from '$lib/components/SummaryMetricsBar.svelte';
   import { 
     RefreshCw, 
-    CheckCircle2, 
-    XCircle, 
     Search, 
-    Zap, 
-    Globe, 
-    Clock, 
-    Award, 
     Vote, 
-    ChevronRight,
-    SlidersHorizontal,
-    AlertCircle,
-    Target,
-    TrendingUp,
-    TrendingDown,
-    AlertTriangle,
-    Sparkles,
-    ArrowUpDown,
-    ArrowUp,
-    ArrowDown
+    TrendingUp, 
+    TrendingDown, 
+    Minus,
+    Sparkles, 
+    AlertCircle, 
+    CheckCircle2,
+    ShieldAlert,
+    Users,
+    ChevronDown
   } from 'lucide-svelte';
 
-  let pollData: PollResponse | null = null;
-  let lastSuccessfulLivePollData: PollResponse | null = null;
-  let isLoading = false;
-  let errorMsg = '';
+  let pollData: RiksdagPollResponse | null = null;
+  let loading = true;
+  let error: string | null = null;
+  let searchInput = '';
+  let showFullComparison = false;
+
   let consecutiveErrors = 0;
   let retryBackoffSeconds = 0;
-  
-  // Controls
-  let pollPhase: 'preliminary' | 'final' = 'preliminary';
-  let pollIntervalSeconds = 300; // Default 5 minutes for dashboard polling
-  let countdown = pollIntervalSeconds;
-  let countdownTimer: any = null;
-
-  // Search, Filters & Sorting
-  let searchQuery = '';
-  let activeTab: 'all' | 'secured' | 'below_threshold' | 'new_regions' | 'without_mandate_prev' = 'all';
-
-  type SortKey = 'name' | 'mandates' | 'votesPct' | 'pctChange';
-  type SortOrder = 'asc' | 'desc';
-
-  let sortKey: SortKey = 'name';
-  let sortOrder: SortOrder = 'asc';
-
-  const sortOptions: { key: SortKey; label: string }[] = [
-    { key: 'name', label: 'Namn' },
-    { key: 'mandates', label: 'Antal mandat' },
-    { key: 'votesPct', label: 'Röstandel' },
-    { key: 'pctChange', label: 'Ökning' }
-  ];
-
-  function setSort(key: SortKey) {
-    if (sortKey === key) {
-      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortKey = key;
-      sortOrder = key === 'name' ? 'asc' : 'desc';
-    }
-  }
+  let countdown = 30;
+  let timer: any = null;
 
   async function fetchPollData() {
-    isLoading = true;
-
+    loading = true;
     try {
-      const res = await fetch(`/api/poll?phase=${pollPhase}`);
-      const data: PollResponse = await res.json().catch(() => null);
-
-      if (!res.ok || !data) {
-        const detail = data?.errorDetails || `HTTP ${res?.status || 504}: Timeout vid anrop till val.se`;
-        throw new Error(detail);
+      const res = await fetch('/api/poll/riksdag');
+      const data: RiksdagPollResponse = await res.json().catch(() => null);
+      if (!res.ok || !data || data.status === 'error') {
+        throw new Error(data?.errorDetails || `HTTP error! status: ${res?.status || 504}`);
       }
-
-      // Successful poll
-      errorMsg = '';
+      error = null;
       consecutiveErrors = 0;
       retryBackoffSeconds = 0;
       pollData = data;
-
-      countdown = pollIntervalSeconds;
-    } catch (err: any) {
+      countdown = 30;
+    } catch (e: any) {
       consecutiveErrors++;
-      errorMsg = err?.message || 'Timeout vid anrop till val.se';
-
-      // Exponential backoff: 2s, 4s, 8s, 16s, 32s, 60s max
-      retryBackoffSeconds = Math.min(60, Math.pow(2, consecutiveErrors));
+      error = e.message || 'Kunde inte hämta Riksdagsresultat';
+      // val.se rate limit (429) cooldown is 60 seconds. Wait 60s directly to allow rate limit to clear cleanly.
+      retryBackoffSeconds = 60;
       countdown = retryBackoffSeconds;
     } finally {
-      isLoading = false;
+      loading = false;
     }
-  }
-
-  function startPolling() {
-    stopPolling();
-    fetchPollData();
-
-    // 1-second ticker for countdown and automated retry
-    countdownTimer = setInterval(() => {
-      if (countdown > 0) {
-        countdown--;
-      } else if (!isLoading) {
-        fetchPollData();
-      }
-    }, 1000);
-  }
-
-  function stopPolling() {
-    if (countdownTimer) clearInterval(countdownTimer);
-  }
-
-  function handlePhaseChange(phase: 'preliminary' | 'final') {
-    if (pollPhase === phase) return;
-    pollPhase = phase;
-    pollData = null;
-    errorMsg = '';
-    consecutiveErrors = 0;
-    retryBackoffSeconds = 0;
-    startPolling();
-  }
-
-  function handleIntervalChange(seconds: number) {
-    pollIntervalSeconds = seconds;
-    if (consecutiveErrors === 0) {
-      countdown = seconds;
-    }
-    startPolling();
   }
 
   function handleManualRetry() {
     consecutiveErrors = 0;
-    errorMsg = '';
+    error = null;
     fetchPollData();
   }
 
+  let isMounted = false;
+
   onMount(() => {
-    loadCoalitionsFromStorage();
-    startPolling();
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('val_filter_riksdag');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.searchInput !== undefined) searchInput = parsed.searchInput;
+          if (parsed.comparisonMode) comparisonMode = parsed.comparisonMode;
+        }
+      } catch (e) {}
+    }
+    isMounted = true;
+    fetchPollData();
+    timer = setInterval(() => {
+      if (countdown > 0) {
+        countdown--;
+      } else if (!loading) {
+        fetchPollData();
+      }
+    }, 1000);
   });
 
   onDestroy(() => {
-    stopPolling();
+    if (timer) clearInterval(timer);
   });
 
-  // Filtered & sorted regions calculation
-  $: filteredRegions = (pollData?.regions || [])
-    .filter((r) => {
-      const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase()) || r.code.includes(searchQuery);
-      if (!matchesSearch) return false;
-
-      if (activeTab === 'secured') return r.hasMandate;
-      if (activeTab === 'below_threshold') return r.mpVotesPct < 3.0;
-      if (activeTab === 'new_regions') return r.isNewRegionWithMandate;
-      if (activeTab === 'without_mandate_prev') return (r.mpMandates - r.mpMandatesChange) <= 0;
-      return true;
-    })
-    .sort((a, b) => {
-      let diff = 0;
-      if (sortKey === 'name') {
-        diff = a.name.localeCompare(b.name, 'sv');
-        return sortOrder === 'asc' ? diff : -diff;
-      }
-
-      if (sortKey === 'mandates') {
-        diff = b.mpMandates - a.mpMandates;
-      } else if (sortKey === 'votesPct') {
-        diff = b.mpVotesPct - a.mpVotesPct;
-      } else if (sortKey === 'pctChange') {
-        diff = b.mpVotesPctChange - a.mpVotesPctChange;
-      }
-
-      if (diff !== 0) {
-        return sortOrder === 'desc' ? diff : -diff;
-      }
-
-      return a.name.localeCompare(b.name, 'sv');
-    });
-
-  $: securedCount = (pollData?.regions || []).filter((r) => r.hasMandate).length;
-  $: belowThresholdCount = (pollData?.regions || []).filter((r) => r.mpVotesPct < 3.0).length;
-  $: newRegionsCount = (pollData?.regions || []).filter((r) => r.isNewRegionWithMandate).length;
-  $: withoutMandatePrevCount = (pollData?.regions || []).filter((r) => (r.mpMandates - r.mpMandatesChange) <= 0).length;
-
-  function formatTime(isoString: string) {
-    if (!isoString) return '';
-    const date = new Date(isoString);
-    return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  }
-
-  function formatCountdown(sec: number): string {
-    if (sec < 60) return `${sec}s`;
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+  $: if (isMounted && typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem('val_filter_riksdag', JSON.stringify({
+        searchInput,
+        comparisonMode
+      }));
+    } catch (e) {}
   }
 
   function formatNumber(num: number | undefined): string {
@@ -204,371 +100,295 @@
     return num.toLocaleString('sv-SE');
   }
 
-  function formatChangeNum(num: number | undefined): string {
-    if (num === undefined || num === null) return '';
-    if (num > 0) return `+${num.toLocaleString('sv-SE')}`;
-    if (num < 0) return num.toLocaleString('sv-SE');
-    return '±0';
-  }
-
-  function formatChangePct(num: number | undefined): string {
-    if (num === undefined || num === null) return '';
-    const formatted = Math.abs(num).toFixed(1).replace('.', ',');
-    if (num > 0) return `+${formatted}%`;
-    if (num < 0) return `-${formatted}%`;
-    return '±0,0%';
-  }
-
-  // Majority / Coalition Builder State with LocalStorage Persistence
-  const LOCAL_STORAGE_KEY = 'mp_val_coalition_builder_v1';
-  let selectedPartiesPerRegion: Record<string, string[]> = {};
-
-  function loadCoalitionsFromStorage() {
-    if (typeof window === 'undefined') return;
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        selectedPartiesPerRegion = JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Failed to load coalition selections from localStorage:', e);
+  function formatDiffNum(num: number | undefined, suffix: string = ''): { text: string; color: string } {
+    if (num === undefined || num === null || num === 0) {
+      return { text: `±0${suffix}`, color: 'text-slate-500' };
     }
-  }
-
-  function saveCoalitionsToStorage(state: Record<string, string[]>) {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.warn('Failed to save coalition selections to localStorage:', e);
+    if (num > 0) {
+      return { text: `+${num.toLocaleString('sv-SE')}${suffix}`, color: 'text-emerald-600 font-extrabold' };
     }
+    return { text: `${num.toLocaleString('sv-SE')}${suffix}`, color: 'text-rose-600 font-extrabold' };
   }
 
-  function togglePartyInCoalition(regionCode: string, partyCode: string) {
-    const current = selectedPartiesPerRegion[regionCode] || [];
-    const updated = current.includes(partyCode)
-      ? current.filter((c) => c !== partyCode)
-      : [...current, partyCode];
+  let comparisonMode: 'preliminary' | 'previous' = 'preliminary';
 
-    selectedPartiesPerRegion = {
-      ...selectedPartiesPerRegion,
-      [regionCode]: updated
-    };
-    saveCoalitionsToStorage(selectedPartiesPerRegion);
-  }
+  $: national = pollData?.nationalResult;
+  $: diffPrelim = pollData?.diffVsPreliminary;
+  $: diffPrev = pollData?.diffVsPrevious;
+  $: activeDiff = comparisonMode === 'preliminary' ? diffPrelim : diffPrev;
 
-  function clearCoalition(regionCode: string) {
-    const next = { ...selectedPartiesPerRegion };
-    delete next[regionCode];
-    selectedPartiesPerRegion = next;
-    saveCoalitionsToStorage(selectedPartiesPerRegion);
-  }
-
-  function getCoalitionSummary(region: RegionResult, state: Record<string, string[]>) {
-    const selectedCodes = state[region.code] || [];
-    if (selectedCodes.length === 0) return null;
-
-    const selectedParties = (region.partyMandates || []).filter((p) => selectedCodes.includes(p.code));
-    const coalitionMandates = selectedParties.reduce((sum, p) => sum + p.mandates, 0);
-    const totalMandates = region.totalMandates || (region.partyMandates || []).reduce((sum, p) => sum + p.mandates, 0);
-    const majorityThreshold = Math.floor(totalMandates / 2) + 1;
-    const isMajority = coalitionMandates >= majorityThreshold;
-    const diff = majorityThreshold - coalitionMandates;
-
-    return {
-      selectedCodes,
-      selectedParties,
-      coalitionMandates,
-      totalMandates,
-      majorityThreshold,
-      isMajority,
-      diff
-    };
-  }
+  $: filteredValkretsar = (pollData?.valkretsar || []).filter((vk) => {
+    const term = searchInput.trim().toLowerCase();
+    if (!term) return true;
+    return vk.name.toLowerCase().includes(term) || vk.code.includes(term);
+  });
 </script>
 
 <svelte:head>
-  <title>MP Regionmandat | Polling val.se</title>
+  <title>Miljöpartiet – Riksdagsvalet</title>
 </svelte:head>
 
-<main class="min-h-screen bg-slate-50 text-slate-900 pb-12">
-  <!-- Header Banner -->
-  <header class="bg-emerald-950 text-white shadow-md border-b border-emerald-800">
-    <div class="max-w-4xl mx-auto px-4 py-6">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-emerald-950 font-bold text-sm">
-              MP
-            </span>
-            <span class="text-xs uppercase tracking-wider text-emerald-300 font-semibold">Valmyndigheten Poller</span>
+<main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-sm">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-black px-2.5 py-0.5 rounded-full border border-emerald-300/50">
+          <Vote class="w-3.5 h-3.5 text-emerald-700" />
+          Riksdagsvalet {pollData?.electionYear || '2026'}
+        </span>
+        {#if pollData}
+          <span class="text-xs font-semibold text-slate-500">
+            {pollData.countingPhase}
+          </span>
+        {/if}
+      </div>
+      <h1 class="text-2xl font-black text-slate-900 tracking-tight">
+        Riksdagsvalet & Jämförelse i räknade distrikt
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Live-uppföljning av MP:s riksdagsmandat och röstjämförelse mot preliminärräkning och förra valet i räknade distrikt.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
+      <button 
+        on:click={fetchPollData}
+        disabled={loading}
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition disabled:opacity-50"
+      >
+        <RefreshCw class="w-3.5 h-3.5 {loading ? 'animate-spin' : ''}" />
+        <span>Uppdatera</span>
+      </button>
+    </div>
+  </div>
+
+  {#if error}
+    <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl shadow-sm space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-950">
+        <div class="flex items-start gap-3">
+          <AlertCircle class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <strong class="font-bold text-sm block">Anslutningsfel mot val.se (Rate limit / Timeout)</strong>
+            <span class="text-xs text-amber-800 font-mono">{error}</span>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold mt-1 tracking-tight text-emerald-50">
-            Miljöpartiet i Regionvalen
-          </h1>
-          <p class="text-emerald-200 text-sm mt-1">
-            Realtidsövervakning av MP-mandat och 3%-spärren per region från <span class="font-medium underline decoration-emerald-500">val.se</span>
-          </p>
         </div>
 
-        <!-- Mode & Poll Button -->
-        <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+        <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <span class="text-xs bg-amber-200/80 border border-amber-300 px-3 py-1.5 rounded-xl font-medium text-amber-900 flex items-center gap-1.5">
+            <RefreshCw class="w-3.5 h-3.5 text-amber-700 {loading ? 'animate-spin' : ''}" />
+            <span>Försöker igen om <strong class="font-mono font-bold text-amber-950">{countdown}s</strong></span>
+          </span>
+
           <button 
-            on:click={() => handleManualRetry()}
-            disabled={isLoading}
-            class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold rounded-lg shadow transition disabled:opacity-50 text-sm"
+            on:click={handleManualRetry}
+            disabled={loading}
+            class="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white rounded-xl text-xs font-bold transition shadow-sm disabled:opacity-50"
           >
-            <RefreshCw class="w-4 h-4 {isLoading ? 'animate-spin' : ''}" />
-            <span>{isLoading ? 'Pollar...' : 'Polla nu'}</span>
+            Försök igen nu
           </button>
         </div>
       </div>
+    </div>
+  {/if}
 
-      <!-- Live Bar / Controls Row -->
-      <div class="mt-6 pt-4 border-t border-emerald-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-emerald-200">
-        <div class="flex flex-wrap items-center gap-3">
-          <!-- Phase Badge -->
-          {#if !errorMsg}
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {pollPhase === 'final' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'}">
-              <span class="w-2 h-2 rounded-full {pollPhase === 'final' ? 'bg-indigo-400' : 'bg-emerald-400 animate-ping'}"></span>
-              {pollPhase === 'final' ? 'Slutgiltig räkning (Länsstyrelsen)' : 'Preliminär räkning (val.se)'}
-            </span>
-          {:else}
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium text-xs">
-              <AlertTriangle class="w-3.5 h-3.5" />
-              Anslutningsproblem
-            </span>
-          {/if}
-
-          <!-- Timestamp -->
-          {#if pollData?.timestamp}
-            <span class="flex items-center gap-1">
-              <Clock class="w-3.5 h-3.5 text-emerald-400" />
-              Senast uppdaterad: <strong class="text-white">{formatTime(pollData.timestamp)}</strong>
-            </span>
-          {/if}
-
-          <!-- Countdown -->
-          <span class="text-emerald-300/80">
-            {consecutiveErrors > 0 ? 'Retry om:' : 'Nästa poll om:'} <strong class="text-emerald-100 font-mono text-sm">{formatCountdown(countdown)}</strong>
-          </span>
+  {#if loading && !pollData}
+    <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3">
+      <RefreshCw class="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+      <p class="text-sm font-semibold text-slate-600">Hämtar resultat för Riksdagen...</p>
+    </div>
+  {:else if national}
+    <!-- National MP Summary Card & Comparison Diff Box -->
+    <div class="bg-emerald-950 text-white p-5 sm:p-6 rounded-2xl border border-emerald-800 shadow-md space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-800/80 pb-4">
+        <div>
+          <span class="text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider block">Nationellt resultat för MP</span>
+          <h2 class="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
+            <span>Miljöpartiet de gröna i Riksdagen</span>
+          </h2>
         </div>
 
-        <!-- Räkningstillfälle Switcher (Matching val.se UI) -->
-        <div class="flex items-center gap-2 bg-emerald-900/80 p-1.5 rounded-xl border border-emerald-800 self-start sm:self-auto text-xs">
-          <span class="text-emerald-300/90 font-medium px-1">Räkningstillfälle:</span>
-          <div class="inline-flex bg-emerald-950/80 p-1 rounded-lg border border-emerald-800/60">
-            <button 
-              on:click={() => handlePhaseChange('preliminary')}
-              class="px-3 py-1 rounded-md text-xs font-bold transition {pollPhase === 'preliminary' ? 'bg-emerald-500 text-emerald-950 shadow' : 'text-emerald-300 hover:text-white'}"
-            >
-              Preliminärt
-            </button>
-            <button 
-              on:click={() => handlePhaseChange('final')}
-              class="px-3 py-1 rounded-md text-xs font-bold transition {pollPhase === 'final' ? 'bg-indigo-600 text-white shadow' : 'text-emerald-300 hover:text-white'}"
-            >
-              Slutgiltigt
-            </button>
+        <div class="flex items-center gap-3">
+          <div class="bg-emerald-900/80 px-4 py-2 rounded-xl border border-emerald-700/60 text-center">
+            <span class="block text-[10px] text-emerald-300 uppercase font-extrabold tracking-wider">Mandat</span>
+            <span class="text-2xl font-black text-white">{national.mpMandates}</span>
+            <span class="block text-[10px] text-emerald-200">av 349</span>
+          </div>
+
+          <div class="bg-emerald-900/80 px-4 py-2 rounded-xl border border-emerald-700/60 text-center">
+            <span class="block text-[10px] text-emerald-300 uppercase font-extrabold tracking-wider">Röstandel</span>
+            <span class="text-2xl font-black {national.mpVotesPct >= 4.0 ? 'text-emerald-300' : 'text-amber-300'}">
+              {national.mpVotesPct.toFixed(2)}%
+            </span>
+            <span class="block text-[10px] text-emerald-200">4,0% spärr</span>
           </div>
         </div>
       </div>
-    </div>
-  </header>
 
-  <div class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+      <!-- Slutgiltig Rösträkning Diff Box (Comparison vs Preliminary or 2022) -->
+      {#if activeDiff}
+        <div class="bg-emerald-900/50 p-4 rounded-xl border border-emerald-700/60 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-1.5">
+              <Sparkles class="w-4 h-4 text-emerald-300" />
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-emerald-200">
+                Jämförelse i räknade distrikt ({activeDiff.districtsCounted || 0} av {activeDiff.districtsTotal || 0})
+              </h3>
+            </div>
 
-    <!-- Timeout / Connection Error Banner with Exponential Backoff Retry -->
-    {#if errorMsg}
-      <div class="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl shadow-sm space-y-3">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-950">
-          <div class="flex items-start gap-3">
-            <AlertCircle class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <strong class="font-bold text-sm block">Anslutningsfel mot val.se (Timeout)</strong>
-              <span class="text-xs text-amber-800 font-mono">{errorMsg}</span>
+            <!-- Comparison Mode Switcher -->
+            <div class="inline-flex bg-emerald-950/90 p-1 rounded-lg border border-emerald-800 text-xs">
+              <button
+                type="button"
+                on:click={() => comparisonMode = 'preliminary'}
+                class="px-2.5 py-1 rounded font-bold transition {comparisonMode === 'preliminary' ? 'bg-emerald-500 text-emerald-950 shadow' : 'text-emerald-300 hover:text-white'}"
+              >
+                vs Preliminärt
+              </button>
+              <button
+                type="button"
+                on:click={() => comparisonMode = 'previous'}
+                class="px-2.5 py-1 rounded font-bold transition {comparisonMode === 'previous' ? 'bg-emerald-500 text-emerald-950 shadow' : 'text-emerald-300 hover:text-white'}"
+              >
+                vs Förra valet (2022)
+              </button>
             </div>
           </div>
 
-          <!-- Exponential Retry Status & Manual Button -->
-          <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <span class="text-xs bg-amber-200/80 border border-amber-300 px-3 py-1.5 rounded-xl font-medium text-amber-900 flex items-center gap-1.5">
-              <RefreshCw class="w-3.5 h-3.5 text-amber-700 {isLoading ? 'animate-spin' : ''}" />
-              <span>Försöker igen om <strong class="font-mono font-bold text-amber-950">{countdown}s</strong></span>
-              <span class="text-[10px] text-amber-800/80 font-mono">(försök #{consecutiveErrors}, +{retryBackoffSeconds}s fördröjning)</span>
-            </span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            <!-- MP Röster -->
+            <div class="bg-emerald-950/80 p-3 rounded-lg border border-emerald-800/80">
+              <span class="block text-[11px] text-emerald-300 font-semibold mb-0.5">MP Röster</span>
+              <span class="text-lg font-black block text-white">
+                {formatNumber(activeDiff.finalVotes)}
+              </span>
+              <div class="text-xs mt-1 flex flex-col items-center justify-center gap-0.5">
+                <span class="text-emerald-300 text-[10px]">
+                  {comparisonMode === 'preliminary' ? 'Preliminärt' : '2022'}: {formatNumber(activeDiff.comparisonVotes)}
+                </span>
+                <span class="font-bold text-xs bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-700 {activeDiff.votesDiff > 0 ? 'text-emerald-300' : activeDiff.votesDiff < 0 ? 'text-rose-300' : 'text-slate-300'}">
+                  {activeDiff.votesDiff > 0 ? '+' : ''}{formatNumber(activeDiff.votesDiff)} röster
+                </span>
+              </div>
+            </div>
 
-            <button 
-              on:click={handleManualRetry}
-              disabled={isLoading}
-              class="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white rounded-xl text-xs font-bold transition shadow-sm disabled:opacity-50"
-            >
-              Försök igen nu
-            </button>
+            <!-- Röstandel (+/-) -->
+            <div class="bg-emerald-950/80 p-3 rounded-lg border border-emerald-800/80">
+              <span class="block text-[11px] text-emerald-300 font-semibold mb-0.5">Röstandel (%)</span>
+              <span class="text-lg font-black block text-white">
+                {activeDiff.finalVotesPct.toFixed(2)}%
+              </span>
+              <div class="text-xs mt-1 flex flex-col items-center justify-center gap-0.5">
+                <span class="text-emerald-300 text-[10px]">
+                  {comparisonMode === 'preliminary' ? 'Preliminärt' : '2022'}: {activeDiff.comparisonVotesPct.toFixed(2)}%
+                </span>
+                <span class="font-bold text-xs bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-700 {activeDiff.votesPctDiff > 0 ? 'text-emerald-300' : activeDiff.votesPctDiff < 0 ? 'text-rose-300' : 'text-slate-300'}">
+                  {activeDiff.votesPctDiff > 0 ? '+' : ''}{activeDiff.votesPctDiff.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Mandat (+/-) -->
+            <div class="bg-emerald-950/80 p-3 rounded-lg border border-emerald-800/80">
+              <span class="block text-[11px] text-emerald-300 font-semibold mb-0.5">Mandat</span>
+              <span class="text-lg font-black block text-white">
+                {national.mpMandates} mandat
+              </span>
+              <div class="text-xs mt-1 flex flex-col items-center justify-center gap-0.5">
+                {#if comparisonMode === 'preliminary' && diffPrelim}
+                  <span class="text-emerald-300 text-[10px]">Preliminärt: {diffPrelim.preliminaryMandates}</span>
+                  <span class="font-bold text-xs bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-700 {diffPrelim.mandatesDiff > 0 ? 'text-emerald-300' : diffPrelim.mandatesDiff < 0 ? 'text-rose-300' : 'text-slate-300'}">
+                    {diffPrelim.mandatesDiff > 0 ? '+' : ''}{diffPrelim.mandatesDiff}
+                  </span>
+                {:else}
+                  <span class="text-emerald-300 text-[10px]">2022: {national.mpMandates - national.mpMandatesChange}</span>
+                  <span class="font-bold text-xs bg-emerald-900 px-1.5 py-0.5 rounded border border-emerald-700 {national.mpMandatesChange > 0 ? 'text-emerald-300' : national.mpMandatesChange < 0 ? 'text-rose-300' : 'text-slate-300'}">
+                    {national.mpMandatesChange > 0 ? '+' : ''}{national.mpMandatesChange}
+                  </span>
+                {/if}
+              </div>
+            </div>
           </div>
         </div>
+      {/if}
 
-        <!-- Info status line: Stale data retention vs empty state -->
-        <div class="pt-2 border-t border-amber-200/80 text-xs text-amber-800 flex items-center gap-1.5">
-          {#if pollData}
-            <Clock class="w-3.5 h-3.5 text-amber-700 shrink-0" />
-            <span>Visar tidigare hämtade resultat från <strong class="text-amber-950 font-mono">{formatTime(pollData.timestamp)}</strong>. Inga nya data kunde hämtas just nu.</span>
+      <!-- Spärrindikator (4.0% Riksdagen) -->
+      <div class="bg-emerald-900/30 p-3.5 rounded-xl border border-emerald-800/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          {#if national.mpVotesPct >= 4.0}
+            <CheckCircle2 class="w-5 h-5 text-emerald-400 shrink-0" />
+            <div>
+              <span class="font-bold text-white block">Säkert över riksdagsspärren (4,0%)</span>
+              <span class="text-emerald-300 text-[11px]">
+                +{formatNumber(national.votesDiffFromThreshold)} röster tillgodo ovanför spärren.
+              </span>
+            </div>
           {:else}
-            <AlertTriangle class="w-3.5 h-3.5 text-amber-700 shrink-0" />
-            <span>Inga tidigare data finns tillgängliga. Inget resultat visas förrän anslutningen till val.se lyckas.</span>
+            <ShieldAlert class="w-5 h-5 text-amber-400 shrink-0" />
+            <div>
+              <span class="font-bold text-amber-300 block">Under riksdagsspärren (4,0%)</span>
+              <span class="text-amber-200 text-[11px]">
+                Saknar {formatNumber(Math.abs(national.votesDiffFromThreshold))} röster för att nå 4,0%.
+              </span>
+            </div>
           {/if}
         </div>
-      </div>
-    {/if}
 
-    <!-- Key Metrics Overview Cards (Mobile Grid) -->
-    {#if pollData?.summary}
-      <SummaryMetricsBar 
-        summary={pollData.summary}
-        type="region"
-      />
-    {/if}
-
-    <!-- Search & Filter Controls -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <!-- Search Input -->
-        <div class="relative flex-1">
-          <Search class="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-          <input 
-            type="text" 
-            bind:value={searchQuery}
-            placeholder="Sök region (t.ex. Stockholm, Skåne)..."
-            class="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-          />
-        </div>
-
-        <!-- Interval selector -->
-        <div class="flex items-center gap-2 text-xs text-slate-600 self-end sm:self-center">
-          <SlidersHorizontal class="w-4 h-4 text-slate-400" />
-          <span>Intervall:</span>
-          <div class="inline-flex bg-slate-100 p-1 rounded-lg">
-            {#each [{ sec: 60, label: '1m' }, { sec: 300, label: '5m' }, { sec: 600, label: '10m' }, { sec: 1800, label: '30m' }] as opt}
-              <button 
-                on:click={() => handleIntervalChange(opt.sec)}
-                class="px-2 py-0.5 rounded text-xs font-medium transition {pollIntervalSeconds === opt.sec ? 'bg-white shadow text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'}"
-              >
-                {opt.label}
-              </button>
-            {/each}
-          </div>
-        </div>
-      </div>
-
-      <!-- Filter Tabs -->
-      <div class="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
-        <button 
-          on:click={() => activeTab = 'all'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {activeTab === 'all' ? 'bg-emerald-100 text-emerald-900' : 'text-slate-600 hover:bg-slate-100'}"
-        >
-          Alla ({pollData?.regions?.length || 0})
-        </button>
-        <button 
-          on:click={() => activeTab = 'secured'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'secured' ? 'bg-emerald-600 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
-        >
-          <CheckCircle2 class="w-3.5 h-3.5" />
-          Över spärren ({securedCount})
-        </button>
-        <button 
-          on:click={() => activeTab = 'below_threshold'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'below_threshold' ? 'bg-amber-500 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
-        >
-          <Target class="w-3.5 h-3.5" />
-          Under spärren ({belowThresholdCount})
-        </button>
-        <button 
-          on:click={() => activeTab = 'new_regions'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'new_regions' ? 'bg-emerald-700 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
-        >
-          <Sparkles class="w-3.5 h-3.5 text-emerald-300" />
-          Nya regioner ({newRegionsCount})
-        </button>
-        <button 
-          on:click={() => activeTab = 'without_mandate_prev'}
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {activeTab === 'without_mandate_prev' ? 'bg-indigo-700 text-white shadow' : 'text-slate-600 hover:bg-slate-100'}"
-        >
-          Utan mandat förut ({withoutMandatePrevCount})
-        </button>
-      </div>
-
-      <!-- Sorting Controls -->
-      <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs">
-        <span class="font-bold text-slate-500 mr-1 flex items-center gap-1.5 shrink-0">
-          <ArrowUpDown class="w-3.5 h-3.5 text-slate-400" />
-          Sortera:
-        </span>
-        <div class="flex flex-wrap items-center gap-1.5">
-          {#each sortOptions as opt}
-            <button 
-              on:click={() => setSort(opt.key)}
-              class="px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 {sortKey === opt.key ? 'bg-emerald-800 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}"
-            >
-              <span>{opt.label}</span>
-              {#if sortKey === opt.key}
-                {#if sortOrder === 'asc'}
-                  <ArrowUp class="w-3 h-3 text-emerald-300 shrink-0" />
-                {:else}
-                  <ArrowDown class="w-3 h-3 text-emerald-300 shrink-0" />
-                {/if}
-              {/if}
-            </button>
-          {/each}
+        <div class="text-right shrink-0">
+          <span class="text-emerald-300 text-[11px] block">Räknade distrikt i Riket</span>
+          <span class="font-black text-white text-xs">
+            {formatNumber(national.districtsCounted)} / {formatNumber(national.districtsTotal)}
+            ({Math.round((national.districtsCounted / (national.districtsTotal || 1)) * 100)}%)
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Regions Grid (Mobile-First Cards) -->
-    {#if isLoading && !pollData}
-      <div class="py-12 text-center text-slate-400 space-y-3">
-        <RefreshCw class="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-        <p class="text-sm">Hämtar regionresultat från val.se...</p>
-      </div>
-    {:else if !pollData}
-      <div class="bg-white p-10 rounded-2xl border border-slate-200 text-center text-slate-500 space-y-3 shadow-sm">
-        <AlertTriangle class="w-10 h-10 text-amber-500 mx-auto" />
-        <h3 class="font-bold text-slate-800 text-base">Ingen live-data tillgänglig</h3>
-        <p class="text-xs max-w-md mx-auto text-slate-500">
-          Valmyndigheten (val.se) kunde inte nås och det finns inga tidigare sparade live-resultat i sessionen.
-          Appen försöker automatiskt ansluta igen med exponentiell fördröjning.
-        </p>
-        <button 
-          on:click={handleManualRetry}
-          disabled={isLoading}
-          class="mt-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition disabled:opacity-50 inline-flex items-center gap-2"
-        >
-          <RefreshCw class="w-4 h-4 {isLoading ? 'animate-spin' : ''}" />
-          <span>Försök ansluta nu</span>
-        </button>
-      </div>
-    {:else if filteredRegions.length === 0}
-      <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500">
-        <Search class="w-8 h-8 text-slate-300 mx-auto mb-2" />
-        <p class="font-medium text-sm">Inga regioner matchar din sökning eller filter.</p>
-      </div>
-    {:else}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {#each filteredRegions as region (region.code)}
-          <ElectionCard 
-            item={region}
-            type="region"
-            selectedParties={selectedPartiesPerRegion[region.code] || []}
-            onToggleParty={(pCode) => togglePartyInCoalition(region.code, pCode)}
-            onClearCoalition={() => clearCoalition(region.code)}
-          />
-        {/each}
-      </div>
-    {/if}
+    <!-- Active Valkretsar Notice & Search Bar -->
+    <div class="space-y-3">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="p-2 bg-indigo-50 rounded-xl text-indigo-700">
+            <Users class="w-4 h-4" />
+          </span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">
+              Påbörjade Riksdagvalkretsar ({filteredValkretsar.length})
+            </h3>
+            <p class="text-[11px] text-slate-500">
+              Visar endast valkretsar där rösträkningen har påbörjats (distrikt &gt; 0). Ej påbörjade valkretsar exkluderas.
+            </p>
+          </div>
+        </div>
 
-    <!-- Footer Information -->
-    <footer class="mt-12 text-center text-xs text-slate-400 space-y-1">
-      <p>Källa: Officiell rösträkningsdata från <a href="https://val.se" target="_blank" rel="noreferrer" class="underline hover:text-emerald-700">Valmyndigheten (val.se)</a>.</p>
-      <p>Data uppdateras automatiskt via regelbunden polling av resultatfiler.</p>
-    </footer>
-  </div>
+        <!-- Search input -->
+        <div class="relative w-full sm:w-64">
+          <Search class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Sök valkrets (t.ex. Stockholm)..."
+            bind:value={searchInput}
+            class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition"
+          />
+        </div>
+      </div>
+
+      <!-- Valkrets Grid -->
+      {#if filteredValkretsar.length === 0}
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-2">
+          <AlertCircle class="w-8 h-8 text-amber-500 mx-auto" />
+          <h4 class="font-bold text-slate-800 text-sm">Inga valkretsar med påbörjad räkning ännu</h4>
+          <p class="text-xs text-slate-500 max-w-md mx-auto">
+            Rösträkningen har inte påbörjats i någon av sökta valkretsar. Så fort rösterna börjar trilla in visas de här!
+          </p>
+        </div>
+      {:else}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {#each filteredValkretsar as vk (vk.code)}
+            <ElectionCard item={vk} type="riksdag" />
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
 </main>
